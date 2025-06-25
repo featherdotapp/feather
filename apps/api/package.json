@@ -2,7 +2,8 @@
   "name": "feather-api",
   "version": "0.0.1-SNAPSHOT",
   "scripts": {
-    "build": "mvn clean package && docker build . -t feather-api",
-    "dev": "docker-compose up -d"
+    "build": "mvn clean install -DskipTests",
+    "start": "java -jar target/your-spring-boot-app-1.0.0.jar",
+    "dev": "mvn spring-boot:run"
   }
 }
