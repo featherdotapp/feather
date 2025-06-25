@@ -1,6 +1,7 @@
 {
   "name": "feather-api",
   "version": "0.0.1-SNAPSHOT",
+  "private": true,
   "scripts": {
     "build": "mvn clean install -DskipTests",
     "start": "java -jar target/your-spring-boot-app-1.0.0.jar",
