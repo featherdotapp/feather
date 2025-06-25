@@ -10,7 +10,7 @@ function App() {
 
   function onclick() {
     posthog.capture("user_pressed_button", {
-      demoVersion: true,
+      source: "frontend",
     });
   }
 
