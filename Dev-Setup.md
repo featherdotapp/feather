@@ -1,9 +1,5 @@
 # Development Setup
 
-## SonarQube for IDE
-
-- Install the SonarQube for IDE plugin
-
 ## SonarCloud Integration with IntelliJ (SonarLint)
 
 1. Open IntelliJ IDEA.
