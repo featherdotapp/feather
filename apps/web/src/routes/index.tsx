@@ -20,16 +20,10 @@ function App() {
       <button
         onClick={onclick}
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-red-500"
-        disabled={!posthog || !posthog.__loaded}
+        disabled={!posthog.__loaded}
       >
-        {posthog && posthog.__loaded
-          ? "Fire PostHog Event"
-          : "Loading PostHog..."}
+        Fire Posthog Event
       </button>
-      <div className="mt-4 text-sm text-gray-600">
-        PostHog Status:{" "}
-        {posthog && posthog.__loaded ? "✅ Loaded" : "⏳ Loading..."}
-      </div>
     </div>
   );
 }
