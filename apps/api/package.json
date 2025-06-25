@@ -1,0 +1,8 @@
+{
+  "name": "feather-api",
+  "version": "0.0.1-SNAPSHOT",
+  "scripts": {
+    "build": "mvn clean package && docker build . -t feather-api",
+    "dev": "docker-compose up -d"
+  }
+}
