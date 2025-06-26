@@ -1,0 +1,123 @@
+name: Build and Analyze
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/landing/**'
+      - 'apps/web/**'
+      - 'packages/ui/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      java: ${{ steps.filter.outputs.java }}
+      ts: ${{ steps.filter.outputs.ts }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            java:
+              - 'apps/api/src/**/*.java'
+              - '**/*.java'
+            ts:
+              - 'apps/web/**/*.ts'
+              - 'apps/web/**/*.tsx'
+              - 'apps/landing/**/*.ts'
+              - 'apps/landing/**/*.tsx'
+              - 'packages/ui/**/*.ts'
+              - 'packages/ui/**/*.tsx'
+
+  build-java:
+    needs: changes
+    if: needs.changes.outputs.java == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build Java
+        run: cd apps/api && mvn -B verify
+
+  build-ts:
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.12.3
+      - name: Install dependencies (monorepo root)
+        run: pnpm install
+      - name: Build all apps and packages with Turborepo
+        run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
+
+  sonar-analysis:
+    # Run sonar-analysis if either build-java or build-ts succeeded
+    needs: [build-java, build-ts]
+    if: needs.build-java.result == 'success' || needs.build-java.result == 'skipped' || needs.build-ts.result == 'success' || needs.build-ts.result == 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.12.3
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Install dependencies (monorepo root)
+        run: pnpm install
+      - name: Build all apps and packages with Turborepo
+        run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          cd apps/api && mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.organization=featherdotapp \
