@@ -22,8 +22,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
       - name: Install dependencies (monorepo root)
-        run: npm install
+        run: pnpm install
       - name: Build all apps and packages with Turborepo
         run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
       - name: SonarQube Scan
