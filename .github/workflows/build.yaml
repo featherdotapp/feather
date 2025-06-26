@@ -119,6 +119,5 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          cd apps/api && mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          cd apps/api && mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.organization=featherdotapp \
-          -Dsonar.java.binaries=target/classes \
