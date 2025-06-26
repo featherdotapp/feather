@@ -35,4 +35,5 @@ if (rootElement && !rootElement.innerHTML) {
   );
   console.log("test for sonar ts coverage")
   console.log("another test for sonar ts coverage")
+  console.log("third test for sonar ts coverage")
 }

@@ -22,5 +22,10 @@ public class SecurityConfig {
         // java coverage test
         return 1;
     }
+
+    public int test2() {
+        // java coverage test
+        return 2;
+    }
 }
 
