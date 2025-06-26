@@ -18,7 +18,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build apps/landing
+        run: |
+          cd apps/landing
+          npm install
+          npm run build
+      - name: Build apps/web
+        run: |
+          cd apps/web
+          npm install
+          npm run build
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=featherdotapp_feather_ts
+            -Dsonar.sources=apps/landing,apps/web,packages/ui
+            -Dsonar.projectBaseDir=.
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**
