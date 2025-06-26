@@ -1,3 +1,4 @@
+import TestComponent from "@repo/ui/test";
 import { createFileRoute } from "@tanstack/react-router";
 import { usePostHog } from "posthog-js/react";
 
@@ -24,6 +25,9 @@ function App() {
       >
         Fire Posthog Event
       </button>
+      <div className="absolute z-50 flex items-center justify-center w-64 h-64">
+        <TestComponent />
+      </div>
     </div>
   );
 }
