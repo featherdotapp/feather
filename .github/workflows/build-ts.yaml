@@ -23,9 +23,9 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies (monorepo root)
-        run: pnpm install
+        run: npm install
       - name: Build all apps and packages with Turborepo
-        run: pnpm turbo run build --filter=apps/landing... --filter=apps/web... --filter=packages/ui...
+        run: npm turbo run build --filter=apps/landing... --filter=apps/web... --filter=packages/ui...
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
