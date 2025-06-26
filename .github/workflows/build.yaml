@@ -27,8 +27,8 @@ jobs:
               - 'apps/api/src/**/*.java'
               - '**/*.java'
             ts:
-              - 'apps/api/**/*.ts'
-              - 'apps/api/**/*.tsx'
+              - 'apps/web/**/*.ts'
+              - 'apps/web/**/*.tsx'
               - 'apps/landing/**/*.ts'
               - 'apps/landing/**/*.tsx'
               - 'packages/ui/**/*.ts'
