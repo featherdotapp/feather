@@ -13,7 +13,9 @@ public class PostHogTestService {
 
     public void trackEventTest() {
         PostHog postHog = postHogBuilder.buildPostHog();
-        postHog.capture("distinct_id_of_the_user", "user_signed_up");
+        java.util.Map<String, Object> properties = new java.util.HashMap<>();
+        properties.put("source", "api");
+        postHog.capture("distinct_id_of_the_user", "user_signed_up", properties);
         postHog.shutdown();
     }
 }
