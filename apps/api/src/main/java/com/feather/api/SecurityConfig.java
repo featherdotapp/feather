@@ -18,8 +18,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Override
-    public int hashCode() {
+    public int test() {
         // java coverage test
         return 1;
     }
