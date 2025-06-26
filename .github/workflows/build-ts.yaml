@@ -23,22 +23,14 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies (monorepo root)
-        run: npm install
-      - name: Build apps/landing
-        run: |
-          cd apps/landing
-          npm run build
-      - name: Build apps/web
-        run: |
-          cd apps/web
-          npm run build
+        run: pnpm install
+      - name: Build all apps and packages with Turborepo
+        run: pnpm turbo run build --filter=apps/landing... --filter=apps/web... --filter=packages/ui...
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=featherdotapp_feather_ts
             -Dsonar.sources=apps/landing,apps/web,packages/ui
-            -Dsonar.projectBaseDir=.
             -Dsonar.exclusions=**/node_modules/**,**/dist/**
