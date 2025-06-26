@@ -39,4 +39,3 @@ jobs:
         run: > 
           cd apps/api &&
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.sources=apps/api
