@@ -121,4 +121,4 @@ jobs:
         run: |
           cd apps/api && mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.organization=featherdotapp \
-          -Dsonar.java.binaries=api/target/classes
+          -Dsonar.java.binaries=target/classes \
