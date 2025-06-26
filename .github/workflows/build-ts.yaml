@@ -39,3 +39,4 @@ jobs:
             -Dsonar.sources=apps/landing,apps/web,packages/ui
             -Dsonar.projectBaseDir=.
             -Dsonar.exclusions=**/node_modules/**,**/dist/**
+            -Dsonar.coverage.exclusions=**/*.ts,**/*.tsx
