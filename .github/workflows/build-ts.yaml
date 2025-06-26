@@ -1,0 +1,41 @@
+name: Build TypeScript
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/landing/**'
+      - 'apps/web/**'
+      - 'packages/ui/**'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  sonarqube-ts:
+    name: SonarQube Scan for TS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.12.3
+      - name: Install dependencies (monorepo root)
+        run: pnpm install
+      - name: Build all apps and packages with Turborepo
+        run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.sources=apps/landing,apps/web,packages/ui
+            -Dsonar.projectBaseDir=.
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**

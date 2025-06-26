@@ -29,6 +29,9 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.projectKey>featherdotapp_feather</sonar.projectKey>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.organization>featherdotapp</sonar.organization>
 	</properties>
 	<dependencies>
 		<dependency>
