@@ -10,10 +10,13 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@gsap/react": "^2.1.2",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-router": "^1.121.2",
     "@tanstack/react-router-devtools": "^1.121.2",
     "@tanstack/router-plugin": "^1.121.2",
+    "gsap": "^3.13.0",
     "posthog-js": "^1.255.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
