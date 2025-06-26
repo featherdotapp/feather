@@ -33,4 +33,5 @@ if (rootElement && !rootElement.innerHTML) {
       <RouterProvider router={router} />
     </StrictMode>
   );
+  console.log("test for sonar ts coverage")
 }
