@@ -96,7 +96,7 @@
 		<dependency>
 			<groupId>com.posthog.java</groupId>
 			<artifactId>posthog</artifactId>
-			<version>LATEST</version>
+			<version>1.2.0</version>
 		</dependency>
 	</dependencies>
 
