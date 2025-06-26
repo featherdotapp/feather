@@ -28,12 +28,11 @@ declare module "@tanstack/react-router" {
 const rootElement = document.getElementById("app");
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
+  const test = 5 * 4;
+  console.log(test);
   root.render(
     <StrictMode>
       <RouterProvider router={router} />
     </StrictMode>
   );
-  console.log("test for sonar ts coverage")
-  console.log("another test for sonar ts coverage")
-  console.log("third test for sonar ts coverage")
 }
