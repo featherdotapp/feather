@@ -78,7 +78,9 @@ jobs:
         run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
 
   sonar-analysis:
+    # Run sonar-analysis if either build-java or build-ts succeeded
     needs: [build-java, build-ts]
+    if: needs.build-java.result == 'success' || needs.build-ts.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

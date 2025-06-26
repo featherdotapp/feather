@@ -23,7 +23,7 @@ public class PostHogTestService {
     }
 
     public int test() {
-       int test = 2 * 4;
+       int test = 2 * 5;
        return test * 2;
     }
 }
