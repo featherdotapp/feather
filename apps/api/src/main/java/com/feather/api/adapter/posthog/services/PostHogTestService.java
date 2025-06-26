@@ -21,9 +21,4 @@ public class PostHogTestService {
         postHog.capture("distinct_id_of_the_user", "user_signed_up", properties);
         postHog.shutdown();
     }
-
-    public int test() {
-       int test = 2 * 5;
-       return test * 2;
-    }
 }
