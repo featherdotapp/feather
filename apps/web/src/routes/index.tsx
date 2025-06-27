@@ -1,4 +1,4 @@
-import TestComponent from "@repo/ui/test";
+import TestComponent from "@feather/ui/test";
 import { createFileRoute } from "@tanstack/react-router";
 import { usePostHog } from "posthog-js/react";
 

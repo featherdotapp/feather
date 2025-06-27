@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/api/**'
-      - 'apps/landing/**'
-      - 'apps/web/**'
-      - 'packages/ui/**'
+      - "apps/api/**"
+      - "apps/landing/**"
+      - "apps/web/**"
+      - "packages/ui/**"
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -46,7 +46,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'temurin'
+          distribution: "temurin"
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -75,7 +75,7 @@ jobs:
       - name: Install dependencies (monorepo root)
         run: pnpm install
       - name: Build all apps and packages with Turborepo
-        run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
+        run: npx turbo run build --filter=landing... --filter=web... --filter=@feather/ui...
 
   sonar-analysis:
     # Run sonar-analysis if either build-java or build-ts succeeded
@@ -90,7 +90,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'temurin'
+          distribution: "temurin"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -114,7 +114,7 @@ jobs:
       - name: Install dependencies (monorepo root)
         run: pnpm install
       - name: Build all apps and packages with Turborepo
-        run: npx turbo run build --filter=landing... --filter=web... --filter=@repo/ui...
+        run: npx turbo run build --filter=landing... --filter=web... --filter=@feather/ui...
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

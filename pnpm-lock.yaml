@@ -22,7 +22,7 @@ importers:
 
   apps/landing:
     dependencies:
-      '@repo/ui':
+      '@feather/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:
@@ -38,10 +38,10 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
     devDependencies:
-      '@repo/eslint-config':
+      '@feather/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/typescript-config':
+      '@feather/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@types/node':
@@ -62,12 +62,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@feather/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@gsap/react':
         specifier: ^2.1.2
         version: 2.1.2(gsap@3.13.0)(react@19.1.0)
-      '@repo/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.11(vite@6.3.5(@types/node@22.15.3)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3))
@@ -96,13 +96,13 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11
     devDependencies:
-      '@repo/eslint-config':
+      '@feather/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/tailwind-config':
+      '@feather/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
-      '@repo/typescript-config':
+      '@feather/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@testing-library/dom':
@@ -169,6 +169,55 @@ importers:
         specifier: ^8.34.0
         version: 8.34.0(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.2)
 
+  packages/notification-handler:
+    dependencies:
+      '@gsap/react':
+        specifier: ^2.1.2
+        version: 2.1.2(gsap@3.13.0)(react@19.1.0)
+      gsap:
+        specifier: ^3.13.0
+        version: 3.13.0
+      react:
+        specifier: ^19.1.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.1.0(react@19.1.0)
+    devDependencies:
+      '@feather/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@feather/tailwind-config':
+        specifier: workspace:*
+        version: link:../tailwind-config
+      '@feather/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@tailwindcss/cli':
+        specifier: ^4.1.11
+        version: 4.1.11
+      '@turbo/gen':
+        specifier: ^2.5.0
+        version: 2.5.0(@types/node@22.15.3)(typescript@5.8.2)
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.3
+      '@types/react':
+        specifier: 19.1.0
+        version: 19.1.0
+      '@types/react-dom':
+        specifier: 19.1.1
+        version: 19.1.1(@types/react@19.1.0)
+      eslint:
+        specifier: ^9.29.0
+        version: 9.29.0(jiti@2.4.2)
+      tailwindcss:
+        specifier: ^4.1.11
+        version: 4.1.11
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
   packages/tailwind-config:
     devDependencies:
       tailwindcss:
@@ -192,13 +241,13 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
     devDependencies:
-      '@repo/eslint-config':
+      '@feather/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/tailwind-config':
+      '@feather/tailwind-config':
         specifier: workspace:*
         version: link:../tailwind-config
-      '@repo/typescript-config':
+      '@feather/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@tailwindcss/cli':
