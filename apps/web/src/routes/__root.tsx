@@ -20,11 +20,14 @@ function RootComponent() {
 
   return (
     <PostHogProvider client={posthog}>
-      <StatusBar ref={statusBarRef} />
+      <div className="absolute inset-x-0 ">
+        <StatusBar ref={statusBarRef} />
+        <StatusNotificationToaster statusBarRef={statusBarRef} />
+      </div>
 
-      <StatusNotificationToaster statusBarRef={statusBarRef} />
-
-      <Outlet />
+      <div className="bg-surface-black min-h-dvh">
+        <Outlet />
+      </div>
       <TanStackRouterDevtools />
     </PostHogProvider>
   );

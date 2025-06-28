@@ -143,9 +143,10 @@ export const StatusNotificationState = new Observer();
 // Variant styles
 const variantStyles = {
   default: {
-    bg: "bg-black/90",
-    text: "text-white",
-    icon: "bg-blue-400",
+    bg: "bg-[rgba(252,100,50,0.1)]",
+    text: "text-[#ffe2d9]",
+    icon: "bg-[#fc6432]",
+    border: "border-[rgba(252,100,50,0.01)]",
   },
 };
 
@@ -225,7 +226,7 @@ const StatusNotification: React.FC<StatusNotificationProps> = ({
       y: 0,
       opacity: 1,
       scale: 1,
-      borderRadius: "0 0 16px 16px",
+      borderRadius: "0 0 45px 45px",
       transformOrigin: "center top",
     });
 
@@ -258,7 +259,7 @@ const StatusNotification: React.FC<StatusNotificationProps> = ({
     // Phase 1: Morph and move
     timeline.to(notificationRef.current, {
       y: 80,
-      borderRadius: "28px",
+      borderRadius: "45px",
       duration: 0.5,
       ease: "power3.out",
     });
@@ -292,8 +293,8 @@ const StatusNotification: React.FC<StatusNotificationProps> = ({
       .to(
         notificationRef.current,
         {
-          width: 320,
-          height: 56,
+          width: 280,
+          height: 40,
           duration: 0.6,
           ease: "power4.out",
         },
@@ -361,25 +362,37 @@ const StatusNotification: React.FC<StatusNotificationProps> = ({
   return (
     <>
       {/* Status Notification */}
-      <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-40">
+      <div className="fixed top-0 left-1/2 transform -translate-x-1/2">
         <div
           ref={notificationRef}
-          className={`${styles.bg} backdrop-blur-xl rounded-full shadow-2xl  flex items-center justify-center relative overflow-hidden`}
+          className={`${styles.bg} backdrop-blur-xl rounded-[45px] shadow-[0px_4px_8px_0px_inset_rgba(255,255,255,0.05),0px_-1px_4px_0px_inset_rgba(252,100,50,0.3)] flex items-center justify-center relative overflow-hidden`}
           style={{
-            boxShadow:
-              "0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+            border: "1px solid rgba(252,100,50,0.01)",
           }}
         >
           <div
             ref={contentRef}
-            className={`${styles.text} text-sm font-medium flex items-center gap-3 px-4`}
+            className={`${styles.text} text-[12px] font-medium flex items-center gap-1 px-3 py-2 leading-[16px]`}
+            style={{
+              fontFamily: '"Suisse Int\'l", sans-serif',
+              fontWeight: 500,
+            }}
           >
             {notification.icon ?? (
               <div
-                className={`w-2 h-2 ${styles.icon} rounded-full animate-pulse`}
+                className={`w-4 h-4 ${styles.icon} rounded-full flex-shrink-0`}
+                style={{
+                  backgroundImage:
+                    'url("http://localhost:3845/assets/d450a09cbef2d2b34e49c49995c535bab61cb101.svg")',
+                  backgroundSize: "contain",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                }}
               />
             )}
-            <span className="max-w-64 truncate">{notification.content}</span>
+            <span className="max-w-64 truncate whitespace-nowrap">
+              {notification.content}
+            </span>
           </div>
         </div>
       </div>

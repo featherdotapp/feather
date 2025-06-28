@@ -8,7 +8,7 @@ interface StatusBarProps {
 export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
   ({ text }, ref) => {
     return (
-      <div className="flex  flex-col items-center w-full ">
+      <div className="flex  flex-col items-center w-full z-50">
         <div className="w-full h-1 bg-brand" />
 
         <div
