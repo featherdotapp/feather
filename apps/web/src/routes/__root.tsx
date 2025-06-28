@@ -1,7 +1,9 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Notch } from "@/components/Notch";
-import { DynamicIslandToaster } from "@/components/DynamicIsland";
+import {
+  StatusNotificationToaster,
+  StatusBar,
+} from "@feather/notification-handler";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { useRef } from "react";
@@ -14,13 +16,13 @@ posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_KEY, {
 });
 
 function RootComponent() {
-  const notchRef = useRef<HTMLDivElement>(null);
+  const statusBarRef = useRef<HTMLDivElement>(null);
 
   return (
     <PostHogProvider client={posthog}>
-      <Notch ref={notchRef} />
+      <StatusBar ref={statusBarRef} />
 
-      <DynamicIslandToaster notchRef={notchRef} />
+      <StatusNotificationToaster statusBarRef={statusBarRef} />
 
       <Outlet />
       <TanStackRouterDevtools />

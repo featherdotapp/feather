@@ -5,44 +5,48 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 // Types
-type DynamicIslandTypes = "default";
+type StatusNotificationTypes = "default";
 
-interface ExternalDynamicIsland {
+interface ExternalStatusNotification {
   id?: string | number;
   content?: ReactNode;
   duration?: number;
-  variant?: DynamicIslandTypes;
+  variant?: StatusNotificationTypes;
   icon?: ReactNode;
   dismissible?: boolean;
 }
 
-interface DynamicIslandT extends ExternalDynamicIsland {
+interface StatusNotificationT extends ExternalStatusNotification {
   id: string | number;
   content: ReactNode;
   dismissible: boolean;
 }
 
-interface DynamicIslandToDismiss {
+interface StatusNotificationToDismiss {
   id: string | number;
   dismiss: boolean;
 }
 
-let islandCounter = 1;
+let notificationCounter = 1;
 
 // Observer class (based on Sonner's pattern)
 class Observer {
-  subscribers: Array<(island: DynamicIslandT | DynamicIslandToDismiss) => void>;
-  islands: Array<DynamicIslandT | DynamicIslandToDismiss>;
-  dismissedIslands: Set<string | number>;
+  subscribers: Array<
+    (notification: StatusNotificationT | StatusNotificationToDismiss) => void
+  >;
+  notifications: Array<StatusNotificationT | StatusNotificationToDismiss>;
+  dismissedNotifications: Set<string | number>;
 
   constructor() {
     this.subscribers = [];
-    this.islands = [];
-    this.dismissedIslands = new Set();
+    this.notifications = [];
+    this.dismissedNotifications = new Set();
   }
 
   subscribe = (
-    subscriber: (island: DynamicIslandT | DynamicIslandToDismiss) => void
+    subscriber: (
+      notification: StatusNotificationT | StatusNotificationToDismiss
+    ) => void
   ) => {
     this.subscribers.push(subscriber);
 
@@ -52,46 +56,53 @@ class Observer {
     };
   };
 
-  publish = (data: DynamicIslandT | DynamicIslandToDismiss) => {
+  publish = (data: StatusNotificationT | StatusNotificationToDismiss) => {
     this.subscribers.forEach((subscriber) => subscriber(data));
   };
 
-  addIsland = (data: DynamicIslandT) => {
+  addNotification = (data: StatusNotificationT) => {
     this.publish(data);
-    this.islands = [...this.islands, data];
+    this.notifications = [...this.notifications, data];
   };
 
-  create = (data: ExternalDynamicIsland) => {
+  create = (data: ExternalStatusNotification) => {
     const { content, ...rest } = data;
     const id =
       typeof data?.id === "number" || (data.id && data.id.toString().length > 0)
         ? data.id
-        : islandCounter++;
+        : notificationCounter++;
 
-    const alreadyExists = this.islands.find((island) => island.id === id);
+    const alreadyExists = this.notifications.find(
+      (notification) => notification.id === id
+    );
     const dismissible = data.dismissible ?? true;
 
-    if (this.dismissedIslands.has(id)) {
-      this.dismissedIslands.delete(id);
+    if (this.dismissedNotifications.has(id)) {
+      this.dismissedNotifications.delete(id);
     }
 
     if (alreadyExists) {
-      this.islands = this.islands.map((island) => {
-        if (island.id === id) {
-          const updatedIsland = {
-            ...island,
+      this.notifications = this.notifications.map((notification) => {
+        if (notification.id === id) {
+          const updatedNotification = {
+            ...notification,
             ...data,
             id,
             content,
             dismissible,
           };
-          this.publish(updatedIsland);
-          return updatedIsland;
+          this.publish(updatedNotification);
+          return updatedNotification;
         }
-        return island;
+        return notification;
       });
     } else {
-      this.addIsland({ content: content || "", ...rest, dismissible, id });
+      this.addNotification({
+        content: content || "",
+        ...rest,
+        dismissible,
+        id,
+      });
     }
 
     return id;
@@ -99,35 +110,35 @@ class Observer {
 
   dismiss = (id?: number | string) => {
     if (id) {
-      this.dismissedIslands.add(id);
+      this.dismissedNotifications.add(id);
       requestAnimationFrame(() =>
         this.subscribers.forEach((subscriber) =>
           subscriber({ id, dismiss: true })
         )
       );
     } else {
-      this.islands.forEach((island) => {
-        this.dismissedIslands.add(island.id);
+      this.notifications.forEach((notification) => {
+        this.dismissedNotifications.add(notification.id);
         this.subscribers.forEach((subscriber) =>
-          subscriber({ id: island.id, dismiss: true })
+          subscriber({ id: notification.id, dismiss: true })
         );
       });
     }
     return id;
   };
 
-  message = (content: ReactNode, data?: ExternalDynamicIsland) => {
+  message = (content: ReactNode, data?: ExternalStatusNotification) => {
     return this.create({ ...data, content });
   };
 
-  getActiveIslands = () => {
-    return this.islands.filter(
-      (island) => !this.dismissedIslands.has(island.id)
+  getActiveNotifications = () => {
+    return this.notifications.filter(
+      (notification) => !this.dismissedNotifications.has(notification.id)
     );
   };
 }
 
-export const DynamicIslandState = new Observer();
+export const StatusNotificationState = new Observer();
 
 // Variant styles
 const variantStyles = {
@@ -138,19 +149,19 @@ const variantStyles = {
   },
 };
 
-// Main Dynamic Island Component
-interface DynamicIslandProps {
-  island: DynamicIslandT | null;
-  notchRef?: React.RefObject<HTMLDivElement | null>;
+// Main Status Notification Component
+interface StatusNotificationProps {
+  notification: StatusNotificationT | null;
+  statusBarRef?: React.RefObject<HTMLDivElement | null>;
   onComplete: () => void;
 }
 
-const DynamicIsland: React.FC<DynamicIslandProps> = ({
-  island,
-  notchRef,
+const StatusNotification: React.FC<StatusNotificationProps> = ({
+  notification,
+  statusBarRef,
   onComplete,
 }) => {
-  const islandRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -174,7 +185,7 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
       duration: 0.2,
       ease: "power2.in",
     }).to(
-      islandRef.current,
+      notificationRef.current,
       {
         width: 160,
         height: 28,
@@ -189,7 +200,7 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
   }, [onComplete]);
 
   const triggerAnimation = useCallback(() => {
-    if (!island) return;
+    if (!notification) return;
 
     // Clear any existing timeout and timeline
     if (timeoutRef.current) {
@@ -208,7 +219,7 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
     timelineRef.current = tl;
 
     // Reset to initial state
-    gsap.set(islandRef.current, {
+    gsap.set(notificationRef.current, {
       width: 160,
       height: 28,
       y: 0,
@@ -223,9 +234,9 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
       scale: 0.8,
     });
 
-    // Only animate notch if ref is provided
-    if (notchRef?.current) {
-      gsap.set(notchRef.current, {
+    // Only animate status bar if ref is provided
+    if (statusBarRef?.current) {
+      gsap.set(statusBarRef.current, {
         scaleY: 1,
         scaleX: 1,
       });
@@ -234,9 +245,9 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
     // Animate entrance
     const timeline = tl;
 
-    // Phase 0: Notch anticipation (only if notch ref exists)
-    if (notchRef?.current) {
-      timeline.to(notchRef.current, {
+    // Phase 0: Status bar anticipation (only if status bar ref exists)
+    if (statusBarRef?.current) {
+      timeline.to(statusBarRef.current, {
         scaleY: 1.1,
         scaleX: 1.02,
         duration: 0.2,
@@ -245,17 +256,17 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
     }
 
     // Phase 1: Morph and move
-    timeline.to(islandRef.current, {
+    timeline.to(notificationRef.current, {
       y: 80,
       borderRadius: "28px",
       duration: 0.5,
       ease: "power3.out",
     });
 
-    if (notchRef?.current) {
+    if (statusBarRef?.current) {
       timeline
         .to(
-          notchRef.current,
+          statusBarRef.current,
           {
             scaleY: 0.9,
             scaleX: 0.98,
@@ -265,7 +276,7 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
           "-=0.4"
         )
         .to(
-          notchRef.current,
+          statusBarRef.current,
           {
             scaleY: 1,
             scaleX: 1,
@@ -279,7 +290,7 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
     // Phase 2: Resize
     timeline
       .to(
-        islandRef.current,
+        notificationRef.current,
         {
           width: 320,
           height: 56,
@@ -301,7 +312,7 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
       )
       // Phase 4: Settle pulse
       .to(
-        islandRef.current,
+        notificationRef.current,
         {
           scale: 1.02,
           duration: 0.3,
@@ -314,12 +325,12 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
 
     // Set up auto-hide timeout after animation completes
     const animationDuration = 2000; // Approximate total animation duration
-    const hideDelay = island.duration ?? 3000;
+    const hideDelay = notification.duration ?? 3000;
 
     timeoutRef.current = setTimeout(() => {
       hideAnimation();
     }, animationDuration + hideDelay);
-  }, [island, notchRef, hideAnimation]);
+  }, [notification, statusBarRef, hideAnimation]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -334,25 +345,25 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
   }, []);
 
   useGSAP(() => {
-    if (island) {
+    if (notification) {
       triggerAnimation();
     } else if (timeoutRef.current) {
-      // Clear timeout when island is removed
+      // Clear timeout when notification is removed
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-  }, [island, triggerAnimation]);
+  }, [notification, triggerAnimation]);
 
-  if (!island) return null;
+  if (!notification) return null;
 
-  const styles = variantStyles[island.variant ?? "default"];
+  const styles = variantStyles[notification.variant ?? "default"];
 
   return (
     <>
-      {/* Dynamic Island */}
+      {/* Status Notification */}
       <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-40">
         <div
-          ref={islandRef}
+          ref={notificationRef}
           className={`${styles.bg} backdrop-blur-xl rounded-full shadow-2xl  flex items-center justify-center relative overflow-hidden`}
           style={{
             boxShadow:
@@ -363,12 +374,12 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
             ref={contentRef}
             className={`${styles.text} text-sm font-medium flex items-center gap-3 px-4`}
           >
-            {island.icon ?? (
+            {notification.icon ?? (
               <div
                 className={`w-2 h-2 ${styles.icon} rounded-full animate-pulse`}
               />
             )}
-            <span className="max-w-64 truncate">{island.content}</span>
+            <span className="max-w-64 truncate">{notification.content}</span>
           </div>
         </div>
       </div>
@@ -376,24 +387,23 @@ const DynamicIsland: React.FC<DynamicIslandProps> = ({
   );
 };
 
-// Toaster Component (renders the islands)
-interface DynamicIslandToasterProps {
-  notchRef?: React.RefObject<HTMLDivElement | null>;
+// Toaster Component (renders the notifications)
+interface StatusNotificationToasterProps {
+  statusBarRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export const DynamicIslandToaster: React.FC<DynamicIslandToasterProps> = ({
-  notchRef,
-}) => {
-  const [currentIsland, setCurrentIsland] = useState<DynamicIslandT | null>(
-    null
-  );
+export const StatusNotificationToaster: React.FC<
+  StatusNotificationToasterProps
+> = ({ statusBarRef }) => {
+  const [currentNotification, setCurrentNotification] =
+    useState<StatusNotificationT | null>(null);
 
   useEffect(() => {
-    const unsubscribe = DynamicIslandState.subscribe((island) => {
-      if ((island as DynamicIslandToDismiss).dismiss) {
-        setCurrentIsland(null);
+    const unsubscribe = StatusNotificationState.subscribe((notification) => {
+      if ((notification as StatusNotificationToDismiss).dismiss) {
+        setCurrentNotification(null);
       } else {
-        setCurrentIsland(island as DynamicIslandT);
+        setCurrentNotification(notification as StatusNotificationT);
       }
     });
 
@@ -401,36 +411,46 @@ export const DynamicIslandToaster: React.FC<DynamicIslandToasterProps> = ({
   }, []);
 
   const handleComplete = useCallback(() => {
-    setCurrentIsland(null);
+    setCurrentNotification(null);
   }, []);
 
   return (
-    <DynamicIsland
-      island={currentIsland}
-      notchRef={notchRef}
+    <StatusNotification
+      notification={currentNotification}
+      statusBarRef={statusBarRef}
       onComplete={handleComplete}
     />
   );
 };
 
-// Main toast function
-const islandFunction = (content: ReactNode, data?: ExternalDynamicIsland) => {
-  return DynamicIslandState.create({
+// Main notification function
+const notificationFunction = (
+  content: ReactNode,
+  data?: ExternalStatusNotification
+) => {
+  return StatusNotificationState.create({
     content,
     ...data,
   });
 };
 
-const basicIsland = islandFunction;
-const getHistory = () => DynamicIslandState.islands;
-const getIslands = () => DynamicIslandState.getActiveIslands();
+const basicNotification = notificationFunction;
+const getHistory = () => StatusNotificationState.notifications;
+const getNotifications = () => StatusNotificationState.getActiveNotifications();
 
 // Export main API (Sonner-style)
-export const dynamicIsland = Object.assign(
-  basicIsland,
+export const statusNotification = Object.assign(
+  basicNotification,
   {
-    message: DynamicIslandState.message,
-    dismiss: DynamicIslandState.dismiss,
+    message: StatusNotificationState.message,
+    dismiss: StatusNotificationState.dismiss,
   },
-  { getHistory, getIslands }
+  { getHistory, getNotifications }
 );
+
+// Export types
+export type {
+  StatusNotificationTypes,
+  ExternalStatusNotification,
+  StatusNotificationToasterProps,
+};

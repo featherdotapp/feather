@@ -62,6 +62,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@feather/notification-handler':
+        specifier: workspace:*
+        version: link:../../packages/notification-handler
       '@feather/ui':
         specifier: workspace:*
         version: link:../../packages/ui

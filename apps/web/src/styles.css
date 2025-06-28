@@ -1,3 +1,4 @@
 @import "tailwindcss";
 @import "@feather/tailwind-config";
 @import "@feather/ui/styles.css";
+@import "@feather/notification-handler/styles.css";

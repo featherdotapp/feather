@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@feather/ui": "workspace:*",
+    "@feather/notification-handler": "workspace:*",
     "@gsap/react": "^2.1.2",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-router": "^1.121.2",
