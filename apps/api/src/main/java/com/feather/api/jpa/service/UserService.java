@@ -1,13 +1,13 @@
 package com.feather.api.jpa.service;
 
+import java.util.Objects;
+import java.util.Optional;
+
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

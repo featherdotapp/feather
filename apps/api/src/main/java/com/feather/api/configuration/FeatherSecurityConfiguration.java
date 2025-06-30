@@ -8,24 +8,28 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import org.springframework.web.filter.CorsFilter;
 
 /**
- * Spring security configuration class
+ * Custom Spring security configuration class for the Feather API
  */
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
-public class SecurityConfiguration {
+public class FeatherSecurityConfiguration {
 
     private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
 
     /**
-     * TODO: Exception handling
+     * TODO:
+     *  - Exception handling
+     *  - Check if CSRF protection is needed (own API-Key + JWT)
+     *
      * Configures the security filter chain to:
      * <ul>
      *   <li>Require a valid API key for all endpoints, including /auth/login and /auth/signup.</li>
@@ -37,10 +41,11 @@ public class SecurityConfiguration {
      * @throws Exception if a configuration error occurs
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CorsFilter corsFilter) throws Exception {
         http
-                // .csrf(AbstractHttpConfigurer::disable) TODO: check if CSRF protection is needed (own API-Key + JWT)
-                .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(apiKeyAuthenticationFilter, CorsFilter.class)
                 .addFilterAfter(jwtAuthenticationFilter, ApiKeyAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/signup").permitAll()
@@ -49,4 +54,5 @@ public class SecurityConfiguration {
                 .authenticationProvider(authenticationProvider);
         return http.build();
     }
+
 }

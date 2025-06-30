@@ -24,6 +24,13 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     @Value("${spring.valid-api-key}")
     private String validApiKey;
 
+    /**
+     * Filters incoming requests to validate the API key.
+     *
+     * @param request     the HTTP request
+     * @param response    the HTTP response
+     * @param filterChain the filter chain
+     */
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
