@@ -1,5 +1,12 @@
 package com.feather.api.jpa.service;
 
+import java.security.Key;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 import com.feather.api.jpa.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,13 +20,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 @Service
 @RequiredArgsConstructor
 public class JwtTokenService {
@@ -28,10 +28,18 @@ public class JwtTokenService {
     private String secretKey;
 
     @Getter
-    @Value("${security.jwt.expiration-time}")
+    @Value("${security.jwt.acess-expiration-time}")
     private long jwtExpiration;
 
+    @Getter
+    @Value("${security.jwt.refresh-expiration-time}")
+    private long refreshTokenExpiration;
+
     private final UserService userService;
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, refreshTokenExpiration);
+    }
 
     /**
      * Generates a JWT for a user.
@@ -39,7 +47,7 @@ public class JwtTokenService {
      * @param userDetails The user details.
      * @return The JWT.
      */
-    public String generateToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
         List<String> userRoles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         final Map<String, List<String>> extraClaims = new HashMap<>(Map.of(
                 "roles", userRoles
@@ -72,11 +80,10 @@ public class JwtTokenService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()))
-                && !isTokenExpired(token)
                 && userService.isJwtValidForUser(token, username);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         final Date expiration = extractExpiration(token);
         return expiration.before(new Date());
     }
@@ -123,8 +130,8 @@ public class JwtTokenService {
     }
 
     public void updateJwtToken(User user) {
-        final String jwtToken = generateToken(user);
-        user.setToken(jwtToken);
+        final String jwtToken = generateAccessToken(user);
+        user.setJwtToken(jwtToken);
     }
 
 }

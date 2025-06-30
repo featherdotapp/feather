@@ -25,6 +25,10 @@ public class UserService {
         return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    public User saveUser(final User user) {
+        return userRepository.save(user);
+    }
+
     /**
      * Checks if the provided token matches the token saved on the db with the current user
      *
@@ -36,7 +40,7 @@ public class UserService {
         final Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             final User user = userOptional.get();
-            return Objects.equals(user.getToken(), token);
+            return Objects.equals(user.getJwtToken(), token);
         }
         return false;
     }
