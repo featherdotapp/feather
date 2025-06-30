@@ -27,7 +27,6 @@ public class FeatherSecurityConfiguration {
 
     /**
      * TODO:
-     *  - Exception handling
      *  - Check if CSRF protection is needed (own API-Key + JWT)
      *
      * Configures the security filter chain to:
