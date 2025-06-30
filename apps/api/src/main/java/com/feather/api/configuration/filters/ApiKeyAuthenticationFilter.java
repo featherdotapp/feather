@@ -21,6 +21,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String API_KEY_HEADER = "x-api-key";
 
+    // TODO: not resolved
     @Value("${spring.valid-api-key}")
     private String validApiKey;
 
@@ -34,6 +35,12 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+        Object callbackAttribute = request.getAttribute(CallbackFilter.CALLBACK_ATTRIBUTE);
+        if (callbackAttribute != null && (boolean) callbackAttribute) {
+            // Skip API key validation for callback paths
+            filterChain.doFilter(request, response);
+            return;
+        }
         String providedApiKey = request.getHeader(API_KEY_HEADER);
 
         if (validApiKey.equals(providedApiKey)) {
@@ -43,4 +50,5 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
             response.getWriter().write("Invalid API Key");
         }
     }
+
 }

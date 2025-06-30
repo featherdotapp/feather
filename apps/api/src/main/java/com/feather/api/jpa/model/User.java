@@ -23,7 +23,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Getter
 @Setter
 @RequiredArgsConstructor
-@NoArgsConstructor
 public class User implements UserDetails {
 
     @Id

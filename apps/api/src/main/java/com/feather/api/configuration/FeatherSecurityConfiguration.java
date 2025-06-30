@@ -1,6 +1,7 @@
 package com.feather.api.configuration;
 
 import com.feather.api.configuration.filters.ApiKeyAuthenticationFilter;
+import com.feather.api.configuration.filters.CallbackFilter;
 import com.feather.api.configuration.filters.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,12 +24,20 @@ public class FeatherSecurityConfiguration {
 
     private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CallbackFilter callbackFilter;
+    private final CorsFilter corsFilter;
     private final AuthenticationProvider authenticationProvider;
+
+    public static final String[] JWT_WHITELISTED_ENDPOINTS = {
+            "/auth/login",
+            "/auth/signup",
+            "/auth/linkedin/loginUrl"
+    };
 
     /**
      * TODO:
      *  - Check if CSRF protection is needed (own API-Key + JWT)
-     *
+     * <p>
      * Configures the security filter chain to:
      * <ul>
      *   <li>Require a valid API key for all endpoints, including /auth/login and /auth/signup.</li>
@@ -40,14 +49,15 @@ public class FeatherSecurityConfiguration {
      * @throws Exception if a configuration error occurs
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, CorsFilter corsFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(apiKeyAuthenticationFilter, CorsFilter.class)
+                .addFilterAfter(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(callbackFilter, CorsFilter.class)
+                .addFilterAfter(apiKeyAuthenticationFilter, CallbackFilter.class)
                 .addFilterAfter(jwtAuthenticationFilter, ApiKeyAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/signup").permitAll()
+                        .requestMatchers(JWT_WHITELISTED_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider);

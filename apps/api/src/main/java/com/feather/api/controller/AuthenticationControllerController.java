@@ -2,9 +2,7 @@ package com.feather.api.controller;
 
 import com.feather.api.configuration.oauth2.OAuth2Provider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,9 +20,8 @@ public class AuthenticationControllerController {
                 "&scope=" + oAuth2Provider.getLinkedinScope();
     }
 
-    @PostMapping("/linkedin/callback")
-    public String linkedinCallback() {
-        // TODO: handle callback
-        return "";
+    @GetMapping("/linkedin/callback")
+    public String linkedinCallback(@RequestParam("code") String code) {
+        return "linkedin callback";
     }
 }

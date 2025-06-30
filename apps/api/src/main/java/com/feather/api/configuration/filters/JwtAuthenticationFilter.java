@@ -46,6 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull final HttpServletResponse response,
             @NonNull final FilterChain filterChain
     ) throws IOException, ServletException {
+        Object callbackAttribute = request.getAttribute(CallbackFilter.CALLBACK_ATTRIBUTE);
+        if (callbackAttribute != null && (boolean) callbackAttribute) {
+            // Skip API key validation for callback paths
+            filterChain.doFilter(request, response);
+            return;
+        }
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             writeUnauthorizedResponse(response, "Invalid or missing JWT Token");
