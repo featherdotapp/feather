@@ -1,4 +1,4 @@
-export { StatusBar } from "./StatusBar";
+export { StatusBar, statusBar, StatusBarState } from "./StatusBar";
 export {
   StatusNotificationToaster,
   statusNotification,

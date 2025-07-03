@@ -1,3 +1,4 @@
+import { statusBar } from "@feather/notification-handler/StatusBar";
 import TestComponent from "@feather/ui/test";
 import { createFileRoute } from "@tanstack/react-router";
 import { usePostHog } from "posthog-js/react";
@@ -24,6 +25,12 @@ function App() {
         disabled={!posthog.__loaded}
       >
         Fire Posthog Event
+      </button>
+      <button
+        onClick={() => statusBar.setText("New Status Bar Text")}
+        className="bg-brand text-white font-bold py-2 px-4 rounded"
+      >
+        Set Status Bar Text
       </button>
       <div className="absolute z-50 flex items-center justify-center w-64 h-64">
         <TestComponent />
