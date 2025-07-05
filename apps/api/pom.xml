@@ -11,7 +11,7 @@
 	<groupId>com.feather</groupId>
 	<artifactId>api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>api</name>
 	<description>Feather Spring Boot API</description>
 	<url/>

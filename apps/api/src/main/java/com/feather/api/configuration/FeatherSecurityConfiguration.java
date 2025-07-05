@@ -1,18 +1,19 @@
 package com.feather.api.configuration;
 
-import com.feather.api.configuration.filters.ApiKeyAuthenticationFilter;
-import com.feather.api.configuration.filters.CallbackFilter;
-import com.feather.api.configuration.filters.JwtAuthenticationFilter;
+import com.feather.api.configuration.access_managers.ApiKeyOnlyAccessManager;
+import com.feather.api.configuration.access_managers.JwtAndApiKeyAccessManager;
+import com.feather.api.configuration.constants.RequestMatchers;
+import com.feather.api.configuration.filters.ApiKeyFilter;
+import com.feather.api.configuration.filters.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
  * Custom Spring security configuration class for the Feather API
@@ -22,21 +23,13 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class FeatherSecurityConfiguration {
 
-    private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CallbackFilter callbackFilter;
-    private final CorsFilter corsFilter;
-    private final AuthenticationProvider authenticationProvider;
-
-    public static final String[] JWT_WHITELISTED_ENDPOINTS = {
-            "/auth/login",
-            "/auth/signup",
-            "/auth/linkedin/loginUrl"
-    };
+    private final ApiKeyFilter apiKeyFilter;
+    private final JwtTokenFilter jwtTokenFilter;
+    private final ApiKeyOnlyAccessManager apiKeyOnlyAccessManager;
+    private final JwtAndApiKeyAccessManager jwtAndApiKeyAccessManager;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     /**
-     * TODO:
-     *  - Check if CSRF protection is needed (own API-Key + JWT)
      * <p>
      * Configures the security filter chain to:
      * <ul>
@@ -52,15 +45,13 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterAfter(corsFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(callbackFilter, CorsFilter.class)
-                .addFilterAfter(apiKeyAuthenticationFilter, CallbackFilter.class)
-                .addFilterAfter(jwtAuthenticationFilter, ApiKeyAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(JWT_WHITELISTED_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .authenticationProvider(authenticationProvider);
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(RequestMatchers.NO_AUTH_ACCESSIBLE_ENDPOINTS).permitAll()
+                        .requestMatchers(RequestMatchers.API_KEY_ONLY_ACCESSIBLE_ENDPOINTS).access(apiKeyOnlyAccessManager)
+                        .anyRequest().access(jwtAndApiKeyAccessManager))
+                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtTokenFilter, ApiKeyFilter.class);
         return http.build();
     }
 

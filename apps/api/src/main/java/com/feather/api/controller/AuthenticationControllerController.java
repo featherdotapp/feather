@@ -11,7 +11,7 @@ public class AuthenticationControllerController {
 
     private final OAuth2Provider oAuth2Provider;
 
-    @PostMapping("/linkedin/loginUrl")
+    @GetMapping("/linkedin/loginUrl")
     public String linkedinLoginUrl() {
         return "https://www.linkedin.com/oauth/v2/authorization" +
                 "?response_type=code" +

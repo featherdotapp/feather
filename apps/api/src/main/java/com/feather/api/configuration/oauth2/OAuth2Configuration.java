@@ -16,7 +16,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
  */
 @Configuration
 @RequiredArgsConstructor
-public class OAuth2SecurityConfiguration {
+public class OAuth2Configuration {
 
     private final OAuth2Provider oAuth2Provider;
 
