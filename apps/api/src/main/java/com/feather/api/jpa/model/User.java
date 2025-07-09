@@ -24,7 +24,7 @@ public class User implements UserDetails {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    private String username;
+    private String email;
     private String jwtToken;
 
     private Role role = Role.UNPAID_USER;
@@ -35,7 +35,7 @@ public class User implements UserDetails {
     }
 
     /**
-     * Required by UserDetails, but not used in this application.
+     * Required by UserDetails but not used in this application.
      * @return null
      */
     @Override
@@ -45,7 +45,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
 }

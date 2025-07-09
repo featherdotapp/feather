@@ -1,4 +1,4 @@
-package com.feather.api.configuration.oauth2;
+package com.feather.api.security.oauth2;
 
 import java.util.List;
 

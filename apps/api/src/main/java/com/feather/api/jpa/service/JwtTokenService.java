@@ -20,6 +20,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service in charge of handling JWT Token logic
+ */
 @Service
 @RequiredArgsConstructor
 public class JwtTokenService {

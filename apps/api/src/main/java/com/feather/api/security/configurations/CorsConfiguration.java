@@ -1,4 +1,4 @@
-package com.feather.api.configuration;
+package com.feather.api.security.configurations;
 
 import org.springframework.context.annotation.Configuration;
 
