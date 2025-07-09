@@ -27,7 +27,7 @@ public class RequestMatchers {
             "auth/linkedin/loginUrl"
     };
 
-    protected static final RequestMatcher API_AND_JWT_SECURED_ENDPOINTS= createNegated();
+    protected static final RequestMatcher API_AND_JWT_SECURED_ENDPOINTS = createNegated();
 
     private static RequestMatcher createNegated() {
         List<String> excludedPaths = new ArrayList<>();
