@@ -26,9 +26,7 @@ public class FeatherCorsConfiguration {
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
+        return provideConfigurationSource(config);
     }
 
     @Bean

@@ -30,4 +30,10 @@ public class AuthenticationControllerController {
     public String linkedinCallback(@RequestParam("code") String code) {
         return "linkedin callback";
     }
+
+    @GetMapping("/test")
+    public String auth() {
+        return "Authentication";
+    }
+
 }

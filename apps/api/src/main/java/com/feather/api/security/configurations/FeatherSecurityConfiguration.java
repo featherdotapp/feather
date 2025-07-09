@@ -1,5 +1,6 @@
 package com.feather.api.security.configurations;
 
+import com.feather.api.security.exception.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class FeatherSecurityConfiguration {
     private final ApiKeyFilter apiKeyFilter;
     private final JwtTokenFilter jwtTokenFilter;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
 
     /**
      * Security filter chain for endpoints secured with an API key.
@@ -36,6 +38,9 @@ public class FeatherSecurityConfiguration {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher(RequestMatchers.API_KEY_SECURED_ENDPOINTS)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
+                )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
         return http.build();
@@ -53,6 +58,9 @@ public class FeatherSecurityConfiguration {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher(RequestMatchers.API_AND_JWT_SECURED_ENDPOINTS)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
+                )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtTokenFilter, ApiKeyFilter.class)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
@@ -71,6 +79,9 @@ public class FeatherSecurityConfiguration {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher(RequestMatchers.NO_SECURED_ENDPOINTS)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
+                )
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }

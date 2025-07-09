@@ -18,13 +18,14 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class RequestMatchers {
 
     protected static final String[] NO_SECURED_ENDPOINTS = {
-            "auth/linkedin/callback",
+            "/auth/linkedin/callback",
+            "/auth/test"
     };
 
     protected static final String[] API_KEY_SECURED_ENDPOINTS = {
             "/auth/login",
             "/auth/register",
-            "auth/linkedin/loginUrl"
+            "/auth/linkedin/loginUrl"
     };
 
     protected static final RequestMatcher API_AND_JWT_SECURED_ENDPOINTS = createNegated();
