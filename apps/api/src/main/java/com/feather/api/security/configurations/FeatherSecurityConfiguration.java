@@ -1,6 +1,6 @@
 package com.feather.api.security.configurations;
 
-import com.feather.api.security.configurations.request_matchers.RequestMatchers;
+import com.feather.api.security.configurations.request_matchers.RequestMatcherProvider;
 import com.feather.api.security.exception.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
@@ -38,7 +38,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain apiKeyChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(RequestMatchers.API_KEY_AUTH_REQUEST_MATCHERS)
+                .securityMatcher(RequestMatcherProvider.API_KEY_AUTH_REQUEST_MATCHERS)
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -58,7 +58,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain jwtAndApiKeyChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(RequestMatchers.API_AND_JWT_SECURED_ENDPOINTS)
+                .securityMatcher(RequestMatcherProvider.API_AND_JWT_SECURED_ENDPOINTS)
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -79,7 +79,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(RequestMatchers.NO_AUTH_REQUEST_MATCHERS)
+                .securityMatcher(RequestMatcherProvider.NO_AUTH_REQUEST_MATCHERS)
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )

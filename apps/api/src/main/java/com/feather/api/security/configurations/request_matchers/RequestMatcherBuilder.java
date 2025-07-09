@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestMatcherBuilder {
 
+    // TODO: add  ParameterRequestMatcher to provide common matchers
+
     private final List<RequestMatcher> matchers = new ArrayList<>();
     private String method = null; // HTTP method (null = all methods)
 

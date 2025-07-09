@@ -8,7 +8,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
  * Constant class which stores RequestsMatchers used in the SecurityFilterChain
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class RequestMatchers {
+public class RequestMatcherProvider {
 
 
     private static final String[] NO_SECURED_ENDPOINTS = {
@@ -22,7 +22,7 @@ public class RequestMatchers {
             "/auth/linkedin/loginUrl"
     };
 
-       public static final RequestMatcher NO_AUTH_REQUEST_MATCHERS = RequestMatcherBuilder
+    public static final RequestMatcher NO_AUTH_REQUEST_MATCHERS = RequestMatcherBuilder
             .create()
             .withPaths(NO_SECURED_ENDPOINTS)
             .asOrMatcher();
