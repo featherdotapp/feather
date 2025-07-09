@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  */
 @Configuration
 @RequiredArgsConstructor
-public class JwtConfiguration {
+public class FeatherJwtConfiguration {
 
     private final UserService userService;
 

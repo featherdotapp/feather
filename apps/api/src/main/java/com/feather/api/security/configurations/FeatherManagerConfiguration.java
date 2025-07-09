@@ -14,7 +14,7 @@ import org.springframework.security.authentication.ProviderManager;
  */
 @Configuration
 @RequiredArgsConstructor
-public class ManagerConfiguration {
+public class FeatherManagerConfiguration {
 
     private final List<AuthenticationProvider> authenticationProviders;
 
