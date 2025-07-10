@@ -26,6 +26,8 @@ public class User implements UserDetails {
 
     private String email;
     private String jwtToken;
+    @Setter(AccessLevel.NONE)
+    private String password = "<PASSWORD>";
 
     private Role role = Role.UNPAID_USER;
 
@@ -40,7 +42,7 @@ public class User implements UserDetails {
      */
     @Override
     public String getPassword() {
-        return null;
+        return password;
     }
 
     @Override
