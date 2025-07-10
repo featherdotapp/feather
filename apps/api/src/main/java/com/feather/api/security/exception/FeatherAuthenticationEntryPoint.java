@@ -11,6 +11,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+/**
+ * Custom AuthenticationEntryPoint for handling unauthorized access attempts in the application.
+ * <p>
+ * This entry point is triggered whenever an unauthenticated user tries to access a protected resource.
+ * It responds with a JSON object containing error details, including the error type and message.
+ * </p>
+ */
 @Component
 public class FeatherAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
@@ -21,7 +28,6 @@ public class FeatherAuthenticationEntryPoint implements AuthenticationEntryPoint
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("error", "Unauthorized");
         errorDetails.put("message", authException.getMessage());
-        errorDetails.put("path", request.getRequestURI());
         new ObjectMapper().writeValue(response.getOutputStream(), errorDetails);
     }
 }

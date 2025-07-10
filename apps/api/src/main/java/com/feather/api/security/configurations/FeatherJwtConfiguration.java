@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
- * Configuration class for JWT Tokens
+ * Spring Security configuration for JWT-based authentication.
  */
 @Configuration
 @RequiredArgsConstructor

@@ -11,6 +11,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Custom Cross-Origin Resource Sharing configuration, initializes configuration depending on profile
+ */
 @Configuration
 public class FeatherCorsConfiguration {
 
@@ -41,7 +44,7 @@ public class FeatherCorsConfiguration {
         return provideConfigurationSource(config);
     }
 
-    private static UrlBasedCorsConfigurationSource provideConfigurationSource(CorsConfiguration config) {
+    private UrlBasedCorsConfigurationSource provideConfigurationSource(CorsConfiguration config) {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
