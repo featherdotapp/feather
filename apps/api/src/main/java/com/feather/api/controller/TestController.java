@@ -1,6 +1,6 @@
 package com.feather.api.controller;
 
-import com.feather.api.adapter.posthog.services.PostHogTestService;
+import com.feather.api.adapter.posthog.service.PostHogTestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

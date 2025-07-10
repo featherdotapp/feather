@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -33,12 +34,13 @@ public class LinkedinApiService {
      *
      * @param authorizationCode The authorization code received from LinkedIn's OAuth2 authorization endpoint
      * @return LinkedInTokenResponse containing the access token and related information
+     * @throws RestClientException if the exchange fails or the response cannot be parsed - handled in
+     * {@link com.feather.api.exception.GlobalExceptionHandler GlobalExceptionHanlder}
      */
-    public LinkedInTokenResponse exchangeAuthorizationCodeForAccessToken(String authorizationCode) {
+    public LinkedInTokenResponse exchangeAuthorizationCodeForAccessToken(String authorizationCode) throws RestClientException {
         final RestTemplate restTemplate = new RestTemplate();
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         final HttpEntity<MultiValueMap<String, String>> request = getMultiValueMapHttpEntity(authorizationCode, headers);
         final ResponseEntity<LinkedInTokenResponse> response = restTemplate.exchange(
                 LINKEDIN_ACCESS_TOKEN_EXCHANGE_URL,
@@ -64,8 +66,10 @@ public class LinkedinApiService {
      *
      * @param bearerAccessToken The OAuth2 access token to authenticate the request
      * @return LinkedinUserInfoResponseDTO containing the user's profile information
+     * @throws RestClientException if the exchange fails or the response cannot be parsed - handled in
+     * {@link com.feather.api.exception.GlobalExceptionHandler GlobalExceptionHanlder}
      */
-    public LinkedinUserInfoResponseDTO getMemberDetails(String bearerAccessToken) {
+    public LinkedinUserInfoResponseDTO getMemberDetails(String bearerAccessToken) throws RestClientException {
         final RestTemplate restTemplate = new RestTemplate();
         final HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(bearerAccessToken);

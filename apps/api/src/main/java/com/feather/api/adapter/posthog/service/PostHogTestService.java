@@ -1,4 +1,4 @@
-package com.feather.api.adapter.posthog.services;
+package com.feather.api.adapter.posthog.service;
 
 import com.feather.api.adapter.posthog.PostHogBuilder;
 import com.posthog.java.PostHog;
