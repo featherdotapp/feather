@@ -3,6 +3,7 @@ package com.feather.api.security.configurations;
 import com.feather.api.security.exception.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
+import com.feather.api.security.tokens.AuthenticationRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,9 +38,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(
-                        "/auth/linkedin/callback"
-                )
+                .securityMatcher("/auth/linkedin/callback")
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -58,14 +57,12 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain apiKeyChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(
-                        "/auth/linkedin/loginUrl"
-                )
+                .securityMatcher("/auth/linkedin/loginUrl")
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAuthority(AuthenticationRoles.WITH_API_KEY.name()));
         return http.build();
     }
 
@@ -80,15 +77,20 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain fullyAuthenticatedChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(
-                        "/**"
-                )
+                .securityMatcher("/**")
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtTokenFilter, ApiKeyFilter.class)
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+                .authorizeHttpRequests(auth -> auth.anyRequest()
+                        .hasAuthority(
+                                String.format("hasAuthority('%s') and hasAuthority('%s')",
+                                        AuthenticationRoles.WITH_API_KEY.name(),
+                                        AuthenticationRoles.WITH_JWT_TOKEN.name()
+                                )
+                        )
+                );
         return http.build();
     }
 
