@@ -1,6 +1,5 @@
 package com.feather.api.security.configurations;
 
-import com.feather.api.security.configurations.request_matchers.RequestMatcherProvider;
 import com.feather.api.security.exception.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
@@ -28,6 +27,27 @@ public class FeatherSecurityConfiguration {
     private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
 
     /**
+     * Security filter chain for public endpoints (no authentication required).
+     *
+     * @param http the HttpSecurity to modify
+     * @return the configured SecurityFilterChain
+     * @throws Exception if an error occurs during configuration
+     */
+    @Bean
+    public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .securityMatcher(
+                        "/auth/linkedin/callback"
+                )
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
+                )
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
      * Security filter chain for endpoints secured with an API key.
      *
      * @param http the HttpSecurity to modify
@@ -38,7 +58,9 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain apiKeyChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(RequestMatcherProvider.API_KEY_AUTH_REQUEST_MATCHERS)
+                .securityMatcher(
+                        "/auth/linkedin/loginUrl"
+                )
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -55,35 +77,18 @@ public class FeatherSecurityConfiguration {
      * @throws Exception if an error occurs during configuration
      */
     @Bean
-    public SecurityFilterChain jwtAndApiKeyChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain fullyAuthenticatedChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(RequestMatcherProvider.API_AND_JWT_SECURED_ENDPOINTS)
+                .securityMatcher(
+                        "/**"
+                )
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtTokenFilter, ApiKeyFilter.class)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
-        return http.build();
-    }
-
-    /**
-     * Security filter chain for public endpoints (no authentication required).
-     *
-     * @param http the HttpSecurity to modify
-     * @return the configured SecurityFilterChain
-     * @throws Exception if an error occurs during configuration
-     */
-    @Bean
-    public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(RequestMatcherProvider.NO_AUTH_REQUEST_MATCHERS)
-                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
-                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
-                )
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 

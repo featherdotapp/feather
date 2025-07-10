@@ -17,6 +17,7 @@ public class AuthenticationControllerController {
 
     private final OAuth2Provider oAuth2Provider;
 
+    // API KEY AUTH
     @GetMapping("/linkedin/loginUrl")
     public String linkedinLoginUrl() {
         return "https://www.linkedin.com/oauth/v2/authorization" +
@@ -26,11 +27,13 @@ public class AuthenticationControllerController {
                 "&scope=" + oAuth2Provider.getLinkedinScope();
     }
 
+    // NO AUTH
     @GetMapping("/linkedin/callback")
     public String linkedinCallback(@RequestParam("code") String code) {
         return "linkedin callback";
     }
 
+    // JWT + API key Auth
     @GetMapping("/test")
     public String auth() {
         return "Authentication";
