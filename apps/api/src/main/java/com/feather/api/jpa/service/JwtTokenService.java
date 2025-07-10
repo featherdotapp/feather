@@ -27,6 +27,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JwtTokenService {
 
+    // TODO: add usage to the refresh- and accessToken
+
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
