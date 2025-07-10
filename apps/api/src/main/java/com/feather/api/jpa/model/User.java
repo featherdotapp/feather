@@ -31,7 +31,8 @@ public class User implements UserDetails {
     private Long id;
 
     private String email;
-    private String jwtToken;
+    private String accessToken;
+    private String refreshToken;
     @Setter(AccessLevel.NONE)
     private String password = "<PASSWORD>";
 
