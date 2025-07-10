@@ -44,6 +44,9 @@ public class AuthenticationControllerController {
     }
 
     /**
+     * TODO:
+     *  build a check if an user with that email exists, handle case when refresh token gets invalid and the user has to reauthenticate, the data from
+     *  (should the data form linkedin be updated?)
      * Handles the OAuth2 callback from LinkedIn after successful authorization.
      * This endpoint:
      * 1. Exchanges the authorization code for access token
@@ -55,15 +58,33 @@ public class AuthenticationControllerController {
      * @return ResponseEntity<User> containing the user information and JWT token
      */
     @GetMapping("/linkedin/callback")
-    public ResponseEntity<User> linkedinCallback(@RequestParam("code") String code) {
-        final LinkedInTokenResponse accessToken = linkedinApiService.exchangeAuthorizationCodeForAccessToken(code);
-        final LinkedinUserInfoResponseDTO memberDetails = linkedinApiService.getMemberDetails(accessToken.accessToken());
-        final User newUser = new User();
-        newUser.setEmail(memberDetails.email());
-        newUser.setRole(Role.UNPAID_USER);
-        final String jwtToken = jwtTokenService.generateAccessToken(newUser);
-        newUser.setJwtToken(jwtToken);
-        return ResponseEntity.ok(userService.saveUser(newUser));
+    public ResponseEntity<String> linkedinCallback(@RequestParam("code") String code) {
+        final LinkedInTokenResponse tokenResponse = linkedinApiService.exchangeAuthorizationCodeForAccessToken(code);
+        final String accessToken = tokenResponse.accessToken();
+        final LinkedinUserInfoResponseDTO linkedinUserInfo = linkedinApiService.getMemberDetails(accessToken);
+        final User user = createUserFromLinkedinProfile(linkedinUserInfo);
+        final String jwtToken = generateAndAssignJwtToken(user);
+        userService.saveUser(user);
+        return ResponseEntity.ok(jwtToken);
     }
+
+    private User createUserFromLinkedinProfile(LinkedinUserInfoResponseDTO linkedinUserInfo) {
+        User user = new User();
+        user.getOAuthProviders().add("LinkedIn");
+        user.setEmail(linkedinUserInfo.email());
+        user.setRole(Role.UNPAID_USER);
+        return user;
+    }
+
+    private String generateAndAssignJwtToken(User user) {
+        String jwtToken = jwtTokenService.generateAccessToken(user);
+        user.setJwtToken(jwtToken);
+        return jwtToken;
+    }
+
+    /**
+     * TODO: possible endpoints
+     *  - logout (make jwt tokens invalid)
+     */
 
 }
