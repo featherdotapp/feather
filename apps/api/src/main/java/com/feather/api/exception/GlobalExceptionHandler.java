@@ -2,7 +2,7 @@ package com.feather.api.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClientException;
@@ -16,13 +16,14 @@ import org.springframework.web.client.RestClientException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UsernameNotFoundException e) {
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> handleUserNotFoundException(final AuthenticationException e) {
+        // handle bad credentials exceptions
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 
     @ExceptionHandler(RestClientException.class)
-    public ResponseEntity<String> handleRestClientException(RestClientException e) {
+    public ResponseEntity<String> handleRestClientException(final RestClientException e) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("Error communicating with external service: " + e.getMessage());
     }
 

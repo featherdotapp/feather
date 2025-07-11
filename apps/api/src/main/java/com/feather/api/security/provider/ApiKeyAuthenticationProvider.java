@@ -30,8 +30,8 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
      * @throws AuthenticationException if authentication fails
      */
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String apiKey = (String) authentication.getCredentials();
+    public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
+        final String apiKey = (String) authentication.getCredentials();
         if (validApiKey.equals(apiKey)) {
             return new ApiKeyAuthenticationToken(apiKey, List.of(new SimpleGrantedAuthority(AuthenticationRoles.WITH_API_KEY.name())));
         }
@@ -45,7 +45,7 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
      * @return true if supported, false otherwise
      */
     @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(final Class<?> authentication) {
         return ApiKeyAuthenticationToken.class.isAssignableFrom(authentication);
     }
 }

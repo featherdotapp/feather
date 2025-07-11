@@ -31,26 +31,26 @@ class JwtTokenAuthenticationProviderTest {
 
     @Test
     void testAuthenticate_validToken_returnsAuthenticatedToken() {
-        String token = "valid-token";
-        String username = "user@example.com";
+        final String token = "valid-token";
+        final String username = "user@example.com";
         when(authentication.getCredentials()).thenReturn(token);
         when(jwtTokenService.extractUsername(token)).thenReturn(username);
         when(userService.getUserFromEmail(username)).thenReturn(user);
-        when(jwtTokenService.isTokenValid(token, user)).thenReturn(true);
+        when(jwtTokenService.isJwtTokenValid(token, user, JwtTokenService.TokenType.ACCESS_TOKEN)).thenReturn(true);
 
-        Authentication result = classUnderTest.authenticate(authentication);
+        final Authentication result = classUnderTest.authenticate(authentication);
         assertThat(result).isInstanceOf(com.feather.api.security.tokens.JwtAuthenticationToken.class);
         assertThat(result.isAuthenticated()).isTrue();
     }
 
     @Test
     void testAuthenticate_invalidToken_throwsBadCredentialsException() {
-        String token = "invalid-token";
-        String username = "user@example.com";
+        final String token = "invalid-token";
+        final String username = "user@example.com";
         when(authentication.getCredentials()).thenReturn(token);
         when(jwtTokenService.extractUsername(token)).thenReturn(username);
         when(userService.getUserFromEmail(username)).thenReturn(user);
-        when(jwtTokenService.isTokenValid(token, user)).thenReturn(false);
+        when(jwtTokenService.isJwtTokenValid(token, user, JwtTokenService.TokenType.ACCESS_TOKEN)).thenReturn(false);
 
         Assertions.assertThrows(org.springframework.security.authentication.BadCredentialsException.class, () ->
                 classUnderTest.authenticate(authentication)
@@ -59,7 +59,7 @@ class JwtTokenAuthenticationProviderTest {
 
     @Test
     void testAuthenticate_nullUsername_throwsBadCredentialsException() {
-        String token = "token";
+        final String token = "token";
         when(authentication.getCredentials()).thenReturn(token);
         when(jwtTokenService.extractUsername(token)).thenReturn(null);
 

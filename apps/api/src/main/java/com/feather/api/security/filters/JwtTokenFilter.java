@@ -1,10 +1,14 @@
 package com.feather.api.security.filters;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import com.feather.api.security.tokens.JwtAuthenticationToken;
+import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
+import com.feather.api.service.CookieHelper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -26,7 +30,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
 
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "Refresh-Token";
     private final AuthenticationManager authenticationManager;
+    private final CookieHelper cookieHelper;
 
     /**
      * Performs JWT authentication for each request.
@@ -40,12 +47,21 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            Authentication auth = new JwtAuthenticationToken(token.substring(7));
-            SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+        final String accessToken = request.getHeader("Authorization");
+        final Optional<Cookie> refreshTokenCookie = cookieHelper.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
+        if (refreshTokenCookie.isPresent() && accessToken != null) {
+            final String refreshToken = refreshTokenCookie.get().getValue();
+            if (hasBearerPrefix(refreshToken) && hasBearerPrefix(accessToken)) {
+                JwtTokenCredentials credentials = new JwtTokenCredentials(accessToken.substring(7), refreshToken);
+                Authentication auth = new JwtAuthenticationToken(credentials);
+                SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+            }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private static boolean hasBearerPrefix(String token) {
+        return token.startsWith(BEARER_PREFIX);
     }
 
 }

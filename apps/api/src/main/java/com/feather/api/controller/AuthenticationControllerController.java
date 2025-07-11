@@ -1,5 +1,8 @@
 package com.feather.api.controller;
 
+import static com.feather.api.jpa.service.JwtTokenService.TokenType.ACCESS_TOKEN;
+import static com.feather.api.jpa.service.JwtTokenService.TokenType.REFRESH_TOKEN;
+
 import com.feather.api.adapter.linkedin.dto.LinkedInTokenResponse;
 import com.feather.api.adapter.linkedin.dto.LinkedinUserInfoResponseDTO;
 import com.feather.api.adapter.linkedin.service.LinkedinApiService;
@@ -8,6 +11,7 @@ import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.oauth2.OAuth2Provider;
+import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,28 +62,30 @@ public class AuthenticationControllerController {
      * @return ResponseEntity<User> containing the user information and JWT token
      */
     @GetMapping("/linkedin/callback")
-    public ResponseEntity<String> linkedinCallback(@RequestParam("code") String code) {
+    public ResponseEntity<String> linkedinCallback(@RequestParam("code") final String code) {
         final LinkedInTokenResponse tokenResponse = linkedinApiService.exchangeAuthorizationCodeForAccessToken(code);
         final String accessToken = tokenResponse.accessToken();
         final LinkedinUserInfoResponseDTO linkedinUserInfo = linkedinApiService.getMemberDetails(accessToken);
         final User user = createUserFromLinkedinProfile(linkedinUserInfo);
-        final String jwtToken = generateAndAssignJwtToken(user);
+        final JwtTokenCredentials tokens = generateAndAssignJwtToken(user);
         userService.saveUser(user);
-        return ResponseEntity.ok(jwtToken);
+        return ResponseEntity.ok(tokens.accessToken());
     }
 
-    private User createUserFromLinkedinProfile(LinkedinUserInfoResponseDTO linkedinUserInfo) {
-        User user = new User();
+    private User createUserFromLinkedinProfile(final LinkedinUserInfoResponseDTO linkedinUserInfo) {
+        final User user = new User();
         user.getOAuthProviders().add("LinkedIn");
         user.setEmail(linkedinUserInfo.email());
         user.setRole(Role.UNPAID_USER);
         return user;
     }
 
-    private String generateAndAssignJwtToken(User user) {
-        String jwtToken = jwtTokenService.generateAccessToken(user);
-        user.setJwtToken(jwtToken);
-        return jwtToken;
+    private JwtTokenCredentials generateAndAssignJwtToken(final User user) {
+        final String accessToken = jwtTokenService.generateAccessToken(user, ACCESS_TOKEN);
+        final String refreshToken = jwtTokenService.generateAccessToken(user, REFRESH_TOKEN);
+        user.setAccessToken(accessToken);
+        user.setRefreshToken(refreshToken);
+        return new JwtTokenCredentials(accessToken, refreshToken);
     }
 
     /**

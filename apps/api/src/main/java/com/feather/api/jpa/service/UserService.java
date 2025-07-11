@@ -1,14 +1,14 @@
 package com.feather.api.jpa.service;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class for managing user-related operations
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -16,32 +16,37 @@ public class UserService {
     private final UserRepository userRepository;
 
     /**
-     * Retrieves a user by their email.
+     * Retrieves a user by their email address.
      *
-     * @param email The email of the user.
-     * @return The user associated with the email, or null if not found.
+     * @param email The email address of the user to retrieve
+     * @return The {@link User} associated with the provided email
+     * @throws UsernameNotFoundException if no user is found with the given email
      */
-    public User getUserFromEmail(final String email) {
+    public User getUserFromEmail(final String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    public User saveUser(final User user) {
-        return userRepository.save(user);
+    /**
+     * Persists a user entity to the database.
+     * If the user already exists (same ID), the existing user will be updated.
+     *
+     * @param user The {@link User} entity to be saved
+     */
+    public void saveUser(final User user) {
+        userRepository.save(user);
     }
 
     /**
-     * Checks if the provided token matches the token saved on the db with the current user
+     * Updates either the access token or refresh token for a specific user.
      *
-     * @param token jwt token
-     * @param email user email
-     * @return true if the jwt matches, false otherwise
+     * @param id The unique identifier of the user
+     * @param accessToken The new token value to be stored
+     * @param tokenType The type of token to update (ACCESS_TOKEN or REFRESH_TOKEN)
      */
-    public boolean isJwtValidForUser(final String token, final String email) {
-        final Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isPresent()) {
-            final User user = userOptional.get();
-            return Objects.equals(user.getJwtToken(), token);
+    public void updateTokenById(final Long id, final String accessToken, final JwtTokenService.TokenType tokenType) {
+        if (tokenType == JwtTokenService.TokenType.ACCESS_TOKEN) {
+            userRepository.updateAccessTokenById(id, accessToken);
         }
-        return false;
+        userRepository.updateRefreshTokenById(id, accessToken);
     }
 }
