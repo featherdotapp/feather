@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import com.feather.api.jpa.model.User;
+import com.feather.api.shared.TokenType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -46,7 +47,7 @@ public class JwtTokenService {
      * @param tokenType The token to generate {@link TokenType#ACCESS_TOKEN ACCESS_TOKEN} or {@link TokenType#REFRESH_TOKEN REFRESH_TOKEN}
      * @return The JWT.
      */
-    public String generateAccessToken(final UserDetails userDetails, final TokenType tokenType) {
+    public String generateJwtToken(final UserDetails userDetails, final TokenType tokenType) {
         if (tokenType == TokenType.ACCESS_TOKEN) {
             final List<String> userRoles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
             final Map<String, List<String>> extraClaims = new HashMap<>(Map.of(
@@ -88,11 +89,23 @@ public class JwtTokenService {
         };
     }
 
+    /**
+     * Checks if a token is expired.
+     *
+     * @param token The JWT to check.
+     * @return True if the token is expired, false otherwise.
+     */
     public boolean isTokenExpired(final String token) {
         final Date expiration = extractExpiration(token);
         return expiration.before(new Date());
     }
 
+    /**
+     * Extracts the expiration date from a JWT.
+     *
+     * @param token The JWT.
+     * @return The expiration date of the token.
+     */
     public Date extractExpiration(final String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -132,11 +145,6 @@ public class JwtTokenService {
     private Key getSignInKey() {
         final byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public enum TokenType {
-        ACCESS_TOKEN,
-        REFRESH_TOKEN,
     }
 
 }

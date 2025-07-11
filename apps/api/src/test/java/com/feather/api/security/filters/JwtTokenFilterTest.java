@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
+import com.feather.api.service.CookieHelper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +42,8 @@ class JwtTokenFilterTest {
     private Authentication authentication;
     @Mock
     private SecurityContext context;
+    @Mock
+    private CookieHelper cookieHelper;
 
     private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
     private JwtTokenFilter classUnderTest;
@@ -48,7 +51,7 @@ class JwtTokenFilterTest {
     @BeforeEach
     void setUp() {
         securityContextHolderMockedStatic = mockStatic(SecurityContextHolder.class);
-        classUnderTest = new JwtTokenFilter(authenticationManager);
+        classUnderTest = new JwtTokenFilter(authenticationManager, cookieHelper);
     }
 
     @AfterEach

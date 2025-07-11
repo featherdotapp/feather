@@ -1,7 +1,7 @@
 package com.feather.api.security.provider;
 
-import static com.feather.api.jpa.service.JwtTokenService.TokenType.ACCESS_TOKEN;
-import static com.feather.api.jpa.service.JwtTokenService.TokenType.REFRESH_TOKEN;
+import static com.feather.api.shared.TokenType.ACCESS_TOKEN;
+import static com.feather.api.shared.TokenType.REFRESH_TOKEN;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,7 +57,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             if (!jwtTokenService.isJwtTokenValid(refreshToken, user, REFRESH_TOKEN)) {
                 throw new BadCredentialsException("Invalid Refresh Token");
             }
-            final String newAccessToken = jwtTokenService.generateAccessToken(user, ACCESS_TOKEN);
+            final String newAccessToken = jwtTokenService.generateJwtToken(user, ACCESS_TOKEN);
             userService.updateTokenById(user.getId(), newAccessToken, REFRESH_TOKEN);
             return createAuthenticationToken(newAccessToken, refreshToken, user);
         }

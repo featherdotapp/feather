@@ -1,7 +1,6 @@
 package com.feather.api.jpa.model;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +24,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 @RequiredArgsConstructor
 public class User implements UserDetails {
 
+    public static final String DEFAULT_OAUTH_PROVIDER = "LinkedIn";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Setter(AccessLevel.NONE)
@@ -38,16 +39,19 @@ public class User implements UserDetails {
     @Setter(AccessLevel.NONE)
     private String password = "<PASSWORD>";
 
-    private Role role = Role.UNPAID_USER;
-    private Set<String> oAuthProviders = new HashSet<>();
+    private List<Role> userRoles = List.of(Role.DEFAULT_USER);
+    private Set<String> oAuthProviders = Set.of(DEFAULT_OAUTH_PROVIDER);
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return userRoles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .toList();
     }
 
     /**
      * Required by UserDetails but not used in this application.
+     *
      * @return null
      */
     @Override

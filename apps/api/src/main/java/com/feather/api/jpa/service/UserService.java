@@ -1,7 +1,10 @@
 package com.feather.api.jpa.service;
 
+import static com.feather.api.shared.TokenType.ACCESS_TOKEN;
+
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.repository.UserRepository;
+import com.feather.api.shared.TokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -43,10 +46,11 @@ public class UserService {
      * @param accessToken The new token value to be stored
      * @param tokenType The type of token to update (ACCESS_TOKEN or REFRESH_TOKEN)
      */
-    public void updateTokenById(final Long id, final String accessToken, final JwtTokenService.TokenType tokenType) {
-        if (tokenType == JwtTokenService.TokenType.ACCESS_TOKEN) {
+    public void updateTokenById(final Long id, final String accessToken, final TokenType tokenType) {
+        if (tokenType == ACCESS_TOKEN) {
             userRepository.updateAccessTokenById(id, accessToken);
         }
         userRepository.updateRefreshTokenById(id, accessToken);
     }
+
 }

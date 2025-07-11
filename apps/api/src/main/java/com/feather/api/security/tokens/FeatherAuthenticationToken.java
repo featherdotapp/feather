@@ -7,19 +7,25 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ * Authentication token for JWTToken-based authentication in Spring Security.
+ * </br>
+ * Stores the JWT Tokens (ACCESS & REFRESH) and the UserDetails where they are stored
+ */
 public class FeatherAuthenticationToken extends AbstractAuthenticationToken {
 
     private final FeatherCredentials credentials;
     private final UserDetails principal;
 
-    public FeatherAuthenticationToken(UserDetails principal, FeatherCredentials credentials) {
+    public FeatherAuthenticationToken(final UserDetails principal, final FeatherCredentials credentials) {
         super(null);
         this.credentials = credentials;
         this.principal = principal;
         setAuthenticated(false);
     }
 
-    public FeatherAuthenticationToken(UserDetails principal, FeatherCredentials credentials, Collection<? extends GrantedAuthority> authorities) {
+    public FeatherAuthenticationToken(final UserDetails principal, final FeatherCredentials credentials,
+            final Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
         this.credentials = credentials;

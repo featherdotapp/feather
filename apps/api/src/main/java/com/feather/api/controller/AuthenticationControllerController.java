@@ -1,20 +1,12 @@
 package com.feather.api.controller;
 
-import static com.feather.api.jpa.service.JwtTokenService.TokenType.ACCESS_TOKEN;
-import static com.feather.api.jpa.service.JwtTokenService.TokenType.REFRESH_TOKEN;
-
-import com.feather.api.adapter.linkedin.dto.LinkedInTokenResponse;
-import com.feather.api.adapter.linkedin.dto.LinkedinUserInfoResponseDTO;
-import com.feather.api.adapter.linkedin.service.LinkedinApiService;
-import com.feather.api.jpa.model.Role;
-import com.feather.api.jpa.model.User;
-import com.feather.api.jpa.service.JwtTokenService;
-import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.oauth2.OAuth2Provider;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
+import com.feather.api.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,9 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationControllerController {
 
     private final OAuth2Provider oAuth2Provider;
-    private final JwtTokenService jwtTokenService;
-    private final UserService userService;
-    private final LinkedinApiService linkedinApiService;
+    private final AuthenticationService authenticationService;
 
     /**
      * Generates the LinkedIn OAuth2 authorization URL.
@@ -48,9 +38,6 @@ public class AuthenticationControllerController {
     }
 
     /**
-     * TODO:
-     *  build a check if an user with that email exists, handle case when refresh token gets invalid and the user has to reauthenticate, the data from
-     *  (should the data form linkedin be updated?)
      * Handles the OAuth2 callback from LinkedIn after successful authorization.
      * This endpoint:
      * 1. Exchanges the authorization code for access token
@@ -63,34 +50,20 @@ public class AuthenticationControllerController {
      */
     @GetMapping("/linkedin/callback")
     public ResponseEntity<String> linkedinCallback(@RequestParam("code") final String code) {
-        final LinkedInTokenResponse tokenResponse = linkedinApiService.exchangeAuthorizationCodeForAccessToken(code);
-        final String accessToken = tokenResponse.accessToken();
-        final LinkedinUserInfoResponseDTO linkedinUserInfo = linkedinApiService.getMemberDetails(accessToken);
-        final User user = createUserFromLinkedinProfile(linkedinUserInfo);
-        final JwtTokenCredentials tokens = generateAndAssignJwtToken(user);
-        userService.saveUser(user);
+        final JwtTokenCredentials tokens = authenticationService.register(code);
         return ResponseEntity.ok(tokens.accessToken());
     }
 
-    private User createUserFromLinkedinProfile(final LinkedinUserInfoResponseDTO linkedinUserInfo) {
-        final User user = new User();
-        user.getOAuthProviders().add("LinkedIn");
-        user.setEmail(linkedinUserInfo.email());
-        user.setRole(Role.UNPAID_USER);
-        return user;
-    }
-
-    private JwtTokenCredentials generateAndAssignJwtToken(final User user) {
-        final String accessToken = jwtTokenService.generateAccessToken(user, ACCESS_TOKEN);
-        final String refreshToken = jwtTokenService.generateAccessToken(user, REFRESH_TOKEN);
-        user.setAccessToken(accessToken);
-        user.setRefreshToken(refreshToken);
-        return new JwtTokenCredentials(accessToken, refreshToken);
-    }
-
     /**
-     * TODO: possible endpoints
-     *  - logout (make jwt tokens invalid)
+     * Logs out the currently authenticated user by invalidating their JWT tokens.
+     * This method clears the access and refreshes tokens associated with the user.
+     *
+     * @return ResponseEntity<Boolean> indicating whether the logout operation was successful
      */
+    @PostMapping("/logout")
+    public ResponseEntity<Boolean> login() {
+        final boolean loggedOut = authenticationService.logOut();
+        return ResponseEntity.ok(loggedOut);
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.feather.api.security.provider;
 
+import static com.feather.api.shared.TokenType.ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +37,7 @@ class JwtTokenAuthenticationProviderTest {
         when(authentication.getCredentials()).thenReturn(token);
         when(jwtTokenService.extractUsername(token)).thenReturn(username);
         when(userService.getUserFromEmail(username)).thenReturn(user);
-        when(jwtTokenService.isJwtTokenValid(token, user, JwtTokenService.TokenType.ACCESS_TOKEN)).thenReturn(true);
+        when(jwtTokenService.isJwtTokenValid(token, user, ACCESS_TOKEN)).thenReturn(true);
 
         final Authentication result = classUnderTest.authenticate(authentication);
         assertThat(result).isInstanceOf(com.feather.api.security.tokens.JwtAuthenticationToken.class);
@@ -50,7 +51,7 @@ class JwtTokenAuthenticationProviderTest {
         when(authentication.getCredentials()).thenReturn(token);
         when(jwtTokenService.extractUsername(token)).thenReturn(username);
         when(userService.getUserFromEmail(username)).thenReturn(user);
-        when(jwtTokenService.isJwtTokenValid(token, user, JwtTokenService.TokenType.ACCESS_TOKEN)).thenReturn(false);
+        when(jwtTokenService.isJwtTokenValid(token, user, ACCESS_TOKEN)).thenReturn(false);
 
         Assertions.assertThrows(org.springframework.security.authentication.BadCredentialsException.class, () ->
                 classUnderTest.authenticate(authentication)

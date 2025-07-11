@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class LinkedinApiService {
 
-    public static final String LINKEDIN_ACCESS_TOKEN_EXCHANGE_URL = "https://www.linkedin.com/oauth/v2/accessToken";
+    private static final String LINKEDIN_ACCESS_TOKEN_EXCHANGE_URL = "https://www.linkedin.com/oauth/v2/accessToken";
     private static final String LINKEDIN_MEMBER_DETAILS_URL = "https://api.linkedin.com/v2/userinfo";
 
     private final OAuth2Provider oAuth2Provider;
@@ -37,7 +37,7 @@ public class LinkedinApiService {
      * @throws RestClientException if the exchange fails or the response cannot be parsed - handled in
      * {@link com.feather.api.exception.GlobalExceptionHandler GlobalExceptionHanlder}
      */
-    public LinkedInTokenResponse exchangeAuthorizationCodeForAccessToken(String authorizationCode) throws RestClientException {
+    public LinkedInTokenResponse exchangeAuthorizationCodeForAccessToken(final String authorizationCode) throws RestClientException {
         final RestTemplate restTemplate = new RestTemplate();
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -52,7 +52,7 @@ public class LinkedinApiService {
     }
 
     private HttpEntity<MultiValueMap<String, String>> getMultiValueMapHttpEntity(final String authorizationCode, final HttpHeaders headers) {
-        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        final MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
         requestBody.add("grant_type", "authorization_code");
         requestBody.add("code", authorizationCode);
         requestBody.add("client_id", oAuth2Provider.getLinkedinClientId());
@@ -69,7 +69,7 @@ public class LinkedinApiService {
      * @throws RestClientException if the exchange fails or the response cannot be parsed - handled in
      * {@link com.feather.api.exception.GlobalExceptionHandler GlobalExceptionHanlder}
      */
-    public LinkedinUserInfoResponseDTO getMemberDetails(String bearerAccessToken) throws RestClientException {
+    public LinkedinUserInfoResponseDTO getMemberDetails(final String bearerAccessToken) throws RestClientException {
         final RestTemplate restTemplate = new RestTemplate();
         final HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(bearerAccessToken);

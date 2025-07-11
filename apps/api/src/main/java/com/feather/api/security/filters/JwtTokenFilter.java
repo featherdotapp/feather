@@ -1,5 +1,9 @@
 package com.feather.api.security.filters;
 
+import static com.feather.api.shared.AuthenticationConstants.AUTHORIZATION_HEADER;
+import static com.feather.api.shared.AuthenticationConstants.BEARER_PREFIX;
+import static com.feather.api.shared.AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME;
+
 import java.io.IOException;
 import java.util.Optional;
 
@@ -30,10 +34,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "Refresh-Token";
     private final AuthenticationManager authenticationManager;
     private final CookieHelper cookieHelper;
+
+    private static boolean hasBearerPrefix(final String token) {
+        return token.startsWith(BEARER_PREFIX);
+    }
 
     /**
      * Performs JWT authentication for each request.
@@ -45,23 +51,20 @@ public class JwtTokenFilter extends OncePerRequestFilter {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
+    protected void doFilterInternal(@NonNull final HttpServletRequest request, @NonNull final HttpServletResponse response,
+            @NonNull final FilterChain filterChain)
             throws ServletException, IOException {
-        final String accessToken = request.getHeader("Authorization");
+        final String accessToken = request.getHeader(AUTHORIZATION_HEADER);
         final Optional<Cookie> refreshTokenCookie = cookieHelper.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
         if (refreshTokenCookie.isPresent() && accessToken != null) {
             final String refreshToken = refreshTokenCookie.get().getValue();
             if (hasBearerPrefix(refreshToken) && hasBearerPrefix(accessToken)) {
-                JwtTokenCredentials credentials = new JwtTokenCredentials(accessToken.substring(7), refreshToken);
-                Authentication auth = new JwtAuthenticationToken(credentials);
+                final JwtTokenCredentials credentials = new JwtTokenCredentials(accessToken.substring(7), refreshToken);
+                final Authentication auth = new JwtAuthenticationToken(credentials);
                 SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
             }
         }
         filterChain.doFilter(request, response);
-    }
-
-    private static boolean hasBearerPrefix(String token) {
-        return token.startsWith(BEARER_PREFIX);
     }
 
 }
