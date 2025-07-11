@@ -52,7 +52,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         final User user = loadUserFromToken(accessToken);
         if (jwtTokenService.isTokenExpired(accessToken)) {
             if (jwtTokenService.isTokenExpired(refreshToken)) {
-                throw new BadCredentialsException("Expired Refresh Token");
+                throw new BadCredentialsException("Expired Refresh Token, log in again to get a new Refresh Token.");
             }
             if (!jwtTokenService.isJwtTokenValid(refreshToken, user, REFRESH_TOKEN)) {
                 throw new BadCredentialsException("Invalid Refresh Token");
