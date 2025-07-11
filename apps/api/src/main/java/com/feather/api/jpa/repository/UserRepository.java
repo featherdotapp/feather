@@ -11,8 +11,5 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    void updateAccessTokenById(Long id, String accessToken);
-
-    void updateRefreshTokenById(Long id, String refreshToken);
 }
 

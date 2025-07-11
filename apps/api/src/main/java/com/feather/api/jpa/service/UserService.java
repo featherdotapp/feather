@@ -42,15 +42,17 @@ public class UserService {
     /**
      * Updates either the access token or refresh token for a specific user.
      *
-     * @param id The unique identifier of the user
+     * @param user user
      * @param accessToken The new token value to be stored
      * @param tokenType The type of token to update (ACCESS_TOKEN or REFRESH_TOKEN)
      */
-    public void updateTokenById(final Long id, final String accessToken, final TokenType tokenType) {
+    public void updateUserToken(final User user, final String accessToken, final TokenType tokenType) {
         if (tokenType == ACCESS_TOKEN) {
-            userRepository.updateAccessTokenById(id, accessToken);
+            user.setAccessToken(accessToken);
+        } else {
+            user.setRefreshToken(accessToken);
         }
-        userRepository.updateRefreshTokenById(id, accessToken);
+        userRepository.save(user);
     }
 
 }

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import com.feather.api.security.tokens.JwtAuthenticationToken;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
-import com.feather.api.service.CookieHelper;
+import com.feather.api.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -35,7 +35,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final AuthenticationManager authenticationManager;
-    private final CookieHelper cookieHelper;
+    private final CookieService cookieService;
 
     private static boolean hasBearerPrefix(final String token) {
         return token.startsWith(BEARER_PREFIX);
@@ -55,7 +55,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             @NonNull final FilterChain filterChain)
             throws ServletException, IOException {
         final String accessToken = request.getHeader(AUTHORIZATION_HEADER);
-        final Optional<Cookie> refreshTokenCookie = cookieHelper.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
+        final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
         if (refreshTokenCookie.isPresent() && accessToken != null) {
             final String refreshToken = refreshTokenCookie.get().getValue();
             if (hasBearerPrefix(refreshToken) && hasBearerPrefix(accessToken)) {

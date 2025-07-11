@@ -58,7 +58,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 throw new BadCredentialsException("Invalid Refresh Token");
             }
             final String newAccessToken = jwtTokenService.generateJwtToken(user, ACCESS_TOKEN);
-            userService.updateTokenById(user.getId(), newAccessToken, REFRESH_TOKEN);
+            userService.updateUserToken(user, newAccessToken, REFRESH_TOKEN);
             return createAuthenticationToken(newAccessToken, refreshToken, user);
         }
         if (!jwtTokenService.isJwtTokenValid(accessToken, user, ACCESS_TOKEN)) {
