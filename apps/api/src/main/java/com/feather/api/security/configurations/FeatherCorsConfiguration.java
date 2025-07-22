@@ -20,6 +20,11 @@ public class FeatherCorsConfiguration {
     @Value("${app.cors.allowed-origins:*}")
     private List<String> allowedOrigins;
 
+    /**
+     * Creates a CorsConfigurationSource for the development profile
+     *
+     * @return a CorsConfigurationSource with dev specific cors configuration
+     */
     @Bean
     @Primary
     @Profile("dev")
@@ -32,11 +37,16 @@ public class FeatherCorsConfiguration {
         return provideConfigurationSource(config);
     }
 
+    /**
+     * Creates a CorsConfigurationSource for the production profile
+     *
+     * @return a CorsConfigurationSource with production specific cors configuration
+     */
     @Bean
     @Primary
     @Profile("prod")
     public CorsConfigurationSource prodCorsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
+        final CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
@@ -44,8 +54,8 @@ public class FeatherCorsConfiguration {
         return provideConfigurationSource(config);
     }
 
-    private UrlBasedCorsConfigurationSource provideConfigurationSource(CorsConfiguration config) {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    private UrlBasedCorsConfigurationSource provideConfigurationSource(final CorsConfiguration config) {
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }

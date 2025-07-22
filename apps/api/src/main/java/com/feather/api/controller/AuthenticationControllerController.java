@@ -51,6 +51,7 @@ public class AuthenticationControllerController {
      * 4. Generates a JWT token for later authentication
      *
      * @param code The authorization code provided by LinkedIn's OAuth2 service
+     * @param response HttpResponse
      */
     @GetMapping("/linkedin/callback")
     public ResponseEntity<JwtTokenCredentials> linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response)

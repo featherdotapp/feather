@@ -8,9 +8,15 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 
+/**
+ * OAuth2Provider is responsible for managing OAuth2 client registrations.
+ * It retrieves configuration properties for LinkedIn and creates client
+ * registrations for use in the application.
+ */
 @Getter
 @Component
 public class OAuth2Provider {
+
     public static final String LINKEDIN_CLIENT_REGISTRATION_ID = "linkedinClientRegistration";
 
     @Value("${spring.security.oauth2.client.registration.linkedin.client-id}")
@@ -32,7 +38,7 @@ public class OAuth2Provider {
      * @return a list of {@link ClientRegistration} objects for Google and LinkedIn
      */
     public List<ClientRegistration> getClientRegistrations() {
-        ClientRegistration linkedinRegistration = ClientRegistration.withRegistrationId(LINKEDIN_CLIENT_REGISTRATION_ID)
+        final ClientRegistration linkedinRegistration = ClientRegistration.withRegistrationId(LINKEDIN_CLIENT_REGISTRATION_ID)
                 .clientId(linkedinClientId)
                 .clientSecret(linkedinClientSecret)
                 .redirectUri(linkedinRedirectUri)

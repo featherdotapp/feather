@@ -17,6 +17,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ * Represents a user entity in the application.
+ * This class implements {@link UserDetails} to integrate with Spring Security.
+ * It contains user-related information such as email and roles.
+ */
 @Entity
 @Table(name = "app_user")
 @Getter
