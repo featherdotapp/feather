@@ -53,9 +53,16 @@ public class AuthenticationControllerController {
      * @param code The authorization code provided by LinkedIn's OAuth2 service
      */
     @GetMapping("/linkedin/callback")
-    public void linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response) throws IOException {
+    public ResponseEntity<JwtTokenCredentials> linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response)
+            throws IOException {
         final JwtTokenCredentials tokens = authenticationService.register(code);
-        redirectService.registerRedirect(response, tokens);
+        //redirectService.registerRedirect(response, tokens);
+        return ResponseEntity.ok(tokens);
+    }
+
+    @GetMapping("/linkedin/isAuthenticated")
+    public ResponseEntity<String> isAuthenticated() {
+        return ResponseEntity.ok("Is Authenticated");
     }
 
     /**

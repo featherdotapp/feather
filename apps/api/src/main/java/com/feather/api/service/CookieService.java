@@ -22,7 +22,7 @@ public class CookieService {
      */
     public Optional<Cookie> findCookie(final Cookie[] cookies, final String cookieName) {
         if (cookies == null) {
-            throw new BadCredentialsException("Refresh token cookie not found");
+            throw new BadCredentialsException(cookieName + " cookie not found");
         }
         return Arrays.stream(cookies)
                 .filter(cookie -> cookie.getName().equals(cookieName))

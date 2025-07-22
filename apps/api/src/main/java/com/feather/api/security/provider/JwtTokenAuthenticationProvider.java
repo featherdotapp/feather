@@ -12,9 +12,7 @@ import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.tokens.AuthenticationRoles;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
-import com.feather.api.security.tokens.JwtAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
-import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,7 +21,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,10 +43,10 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
      */
     @Override
     public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
-        final JwtTokenCredentials jwtTokenCredentials = (JwtTokenCredentials) authentication.getCredentials();
-        final String accessToken = jwtTokenCredentials.accessToken();
-        final String refreshToken = jwtTokenCredentials.refreshToken();
-        final User user = loadUserFromToken(accessToken);
+        final FeatherCredentials credentials = (FeatherCredentials) authentication.getCredentials();
+        final String accessToken = credentials.accessToken();
+        final String refreshToken = credentials.refreshToken();
+        final User user = (User) authentication.getPrincipal();
         if (jwtTokenService.isTokenExpired(accessToken)) {
             if (jwtTokenService.isTokenExpired(refreshToken)) {
                 throw new BadCredentialsException("Expired Refresh Token, log in again to get a new Refresh Token.");
@@ -74,11 +71,6 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         return new FeatherAuthenticationToken(user, credentials, authorities);
     }
 
-    private User loadUserFromToken(final String accessToken) throws UsernameNotFoundException {
-        final String userName = jwtTokenService.extractUsername(accessToken);
-        return userService.getUserFromEmail(userName);
-    }
-
     private FeatherCredentials buildCredentials(final String accessToken, final String refreshToken, final Authentication currentAuthentication) {
         final String currentAuthCredentials = (String) currentAuthentication.getCredentials();
         return new FeatherCredentials(currentAuthCredentials, accessToken, refreshToken);
@@ -99,7 +91,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
      */
     @Override
     public boolean supports(final Class<?> authentication) {
-        return JwtAuthenticationToken.class.isAssignableFrom(authentication);
+        return FeatherAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
 }

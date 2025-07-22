@@ -1,5 +1,8 @@
 package com.feather.api.security.configurations;
 
+import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
+import static org.springframework.security.authorization.AuthorizationManagers.allOf;
+
 import com.feather.api.security.exception.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
@@ -35,7 +38,7 @@ public class FeatherSecurityConfiguration {
      * @throws Exception if an error occurs during configuration
      */
     @Bean
-    public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher("/auth/linkedin/callback")
@@ -54,7 +57,7 @@ public class FeatherSecurityConfiguration {
      * @throws Exception if an error occurs during configuration
      */
     @Bean
-    public SecurityFilterChain apiKeyChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiKeyChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher("/auth/linkedin/loginUrl")
@@ -74,21 +77,19 @@ public class FeatherSecurityConfiguration {
      * @throws Exception if an error occurs during configuration
      */
     @Bean
-    public SecurityFilterChain fullyAuthenticatedChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain fullyAuthenticatedChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/**")
+                .securityMatcher("/auth/linkedin/isAuthenticated")
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtTokenFilter, ApiKeyFilter.class)
                 .authorizeHttpRequests(auth -> auth.anyRequest()
-                        .hasAuthority(
-                                String.format("hasAuthority('%s') and hasAuthority('%s')",
-                                        AuthenticationRoles.WITH_API_KEY.name(),
-                                        AuthenticationRoles.WITH_JWT_TOKEN.name()
-                                )
+                        .access(allOf(
+                                hasAuthority(AuthenticationRoles.WITH_API_KEY.name()),
+                                hasAuthority(AuthenticationRoles.WITH_JWT_TOKEN.name()))
                         )
                 );
         return http.build();

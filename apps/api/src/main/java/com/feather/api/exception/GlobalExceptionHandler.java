@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // TODO: add posthog integration
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<String> handleUserNotFoundException(final AuthenticationException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
