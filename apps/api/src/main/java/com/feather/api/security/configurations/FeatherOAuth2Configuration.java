@@ -1,7 +1,8 @@
-package com.feather.api.security.oauth2;
+package com.feather.api.security.configurations;
 
 import java.util.List;
 
+import com.feather.api.security.oauth2.OAuth2Provider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
  */
 @Configuration
 @RequiredArgsConstructor
-public class OAuth2Configuration {
+public class FeatherOAuth2Configuration {
 
     private final OAuth2Provider oAuth2Provider;
 
@@ -28,7 +29,7 @@ public class OAuth2Configuration {
      */
     @Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
-        List<ClientRegistration> registrations = oAuth2Provider.getClientRegistrations();
+        final List<ClientRegistration> registrations = oAuth2Provider.getClientRegistrations();
         return new InMemoryClientRegistrationRepository(registrations);
     }
 
@@ -39,7 +40,7 @@ public class OAuth2Configuration {
      * @return an in-memory {@link OAuth2AuthorizedClientService}
      */
     @Bean
-    public OAuth2AuthorizedClientService customAuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
+    public OAuth2AuthorizedClientService customAuthorizedClientService(final ClientRegistrationRepository clientRegistrationRepository) {
         return new InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository);
     }
 }

@@ -3,6 +3,8 @@ package com.feather.api.security.provider;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.lang.reflect.Field;
+
 import com.feather.api.security.tokens.ApiKeyAuthenticationToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,25 +27,25 @@ class ApiKeyAuthenticationProviderTest {
         validApiKey = "test-key";
         // Set the environment value
         try {
-            java.lang.reflect.Field field = ApiKeyAuthenticationProvider.class.getDeclaredField("validApiKey");
+            final Field field = ApiKeyAuthenticationProvider.class.getDeclaredField("validApiKey");
             field.setAccessible(true);
             field.set(classUnderTest, validApiKey);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Test
     void testAuthenticate_validApiKey_returnsAuthenticatedToken() {
-        ApiKeyAuthenticationToken token = new ApiKeyAuthenticationToken(validApiKey);
-        Authentication result = classUnderTest.authenticate(token);
+        final ApiKeyAuthenticationToken token = new ApiKeyAuthenticationToken(validApiKey);
+        final Authentication result = classUnderTest.authenticate(token);
         assertThat(result.isAuthenticated()).isTrue();
         assertThat(result.getPrincipal()).isEqualTo("apiKey");
     }
 
     @Test
     void testAuthenticate_invalidApiKey_throwsBadCredentialsException() {
-        ApiKeyAuthenticationToken token = new ApiKeyAuthenticationToken("wrong-key");
+        final ApiKeyAuthenticationToken token = new ApiKeyAuthenticationToken("wrong-key");
         assertThrows(BadCredentialsException.class, () -> classUnderTest.authenticate(token));
     }
 

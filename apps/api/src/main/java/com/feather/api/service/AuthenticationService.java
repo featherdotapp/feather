@@ -73,7 +73,7 @@ public class AuthenticationService {
      */
     public boolean logOut() {
         final FeatherAuthenticationToken authentication = (FeatherAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        final User user = (User) authentication.getCredentials();
+        final User user = (User) authentication.getPrincipal();
         final String emptyString = "";
         userService.updateUserToken(user, emptyString, ACCESS_TOKEN);
         userService.updateUserToken(user, emptyString, REFRESH_TOKEN);

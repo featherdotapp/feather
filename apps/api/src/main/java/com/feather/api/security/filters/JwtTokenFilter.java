@@ -62,9 +62,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         final String accessToken = request.getHeader(AUTHORIZATION_HEADER);
         final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
-        final Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        final String apiKey = currentAuth != null && currentAuth.getCredentials() instanceof final String castedCredentials
-                ? castedCredentials : null;
+        final String apiKey = getApiKey();
 
         if (refreshTokenCookie.isPresent() && accessToken != null && apiKey != null) {
             final String refreshToken = refreshTokenCookie.get().getValue();
@@ -79,10 +77,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private String getApiKey() {
+        final Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+        return currentAuth != null
+                && currentAuth.getCredentials() instanceof final String castedCredentials
+                ? castedCredentials
+                : null;
+    }
+
     private User loadUserFromToken(final String accessToken) throws UsernameNotFoundException {
-        final String token = accessToken.startsWith(BEARER_PREFIX)
-                ? accessToken.substring(BEARER_PREFIX.length())
-                : accessToken;
+        final String token = accessToken.substring(BEARER_PREFIX.length());
         final String userName = jwtTokenService.extractUsername(token);
         return userService.getUserFromEmail(userName);
     }

@@ -9,7 +9,6 @@ import com.feather.api.adapter.posthog.service.PostHogService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -32,23 +31,15 @@ public class FeatherAuthenticationEntryPoint implements AuthenticationEntryPoint
     public void commence(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        final Map<String, Object> errorDetails = handleError(request, response, authException);
-        SecurityContextHolder.clearContext();
-        new ObjectMapper().writeValue(response.getOutputStream(), errorDetails);
-    }
 
-    private Map<String, Object> handleError(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) {
         final Map<String, Object> errorDetails = new HashMap<>();
-        if (Boolean.TRUE.equals(request.getAttribute("rateLimitExceeded"))) {
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            errorDetails.put("error", "Too Many Requests");
-            errorDetails.put("message", "Rate limit exceeded");
-            postHogService.trackEvent(request.getRemoteAddr(), "rate_limit_exceeded", errorDetails);
-        } else {
-            errorDetails.put("error", "Unauthorized");
-            errorDetails.put("message", authException.getMessage());
-            postHogService.trackEvent(request.getRemoteAddr(), "authentication_exception", errorDetails);
-        }
-        return errorDetails;
+        errorDetails.put("error", "Unauthorized");
+        errorDetails.put("message", authException.getMessage());
+
+        SecurityContextHolder.clearContext();
+
+        postHogService.trackEvent(request.getRemoteAddr(), "authentication_exception", errorDetails);
+
+        new ObjectMapper().writeValue(response.getOutputStream(), errorDetails);
     }
 }

@@ -21,7 +21,7 @@ public class CookieService {
      * @return An Optional containing the found cookie, or an empty Optional if no matching cookie exists
      */
     public Optional<Cookie> findCookie(final Cookie[] cookies, final String cookieName) {
-        if (cookies == null) {
+        if (cookies == null || cookies.length == 0) {
             throw new BadCredentialsException(cookieName + " cookie not found");
         }
         return Arrays.stream(cookies)
