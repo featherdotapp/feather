@@ -1,0 +1,127 @@
+@startuml
+abstract class AbstractAuthenticationToken
+abstract class OncePerRequestFilter
+interface AuthenticationManager
+
+class ApiKeyAuthenticationToken extends AbstractAuthenticationToken {
+- String apiKey
++ Object getCredentials()
++ Object getPrincipal()
+}
+
+
+class FeatherManagerConfiguration {
+- List<AuthenticationProvider> authenticationProviders
++ AuthenticationManager authenticationManager()
+}
+
+class OAuth2Configuration {
+- OAuth2Provider oAuth2Provider
++ ClientRegistrationRepository clientRegistrationRepository()
++ OAuth2AuthorizedClientService customAuthorizedClientService(ClientRegistrationRepository)
+}
+
+class JwtTokenAuthenticationProvider implements AuthenticationProvider {
+- JwtTokenService jwtTokenService
+- UserService userService
++ Authentication authenticate(Authentication)
++ boolean supports(Class<?>)
+}
+
+
+class JwtTokenFilter extends OncePerRequestFilter {
+- AuthenticationManager authenticationManager
+# void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
+}
+
+
+class FeatherCorsConfiguration {
+- List<String> allowedOrigins
++ CorsConfigurationSource devCorsConfigurationSource()
++ CorsConfigurationSource prodCorsConfigurationSource()
+- UrlBasedCorsConfigurationSource provideConfigurationSource(CorsConfiguration)
+}
+
+
+class ApiKeyFilter extends OncePerRequestFilter {
+- AuthenticationManager authenticationManager
+# void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
+}
+
+
+class OAuth2Provider {
++ {static} String LINKEDIN_CLIENT_REGISTRATION_ID
+- String linkedinClientId
+- String linkedinClientSecret
+- String linkedinRedirectUri
+- String linkedinScope
++ List<ClientRegistration> getClientRegistrations()
+}
+
+
+class JwtAuthenticationToken extends AbstractAuthenticationToken{
+- String token
+- UserDetails principal
++ Object getCredentials()
++ Object getPrincipal()
+}
+
+
+class FeatherAuthenticationEntryPoint implements AuthenticationEntryPoint{
++ void commence(HttpServletRequest,HttpServletResponse,AuthenticationException)
+}
+
+class FeatherSecurityConfiguration {
+- ApiKeyFilter apiKeyFilter
+- JwtTokenFilter jwtTokenFilter
+- CorsConfigurationSource corsConfigurationSource
+- FeatherAuthenticationEntryPoint authenticationEntryPoint
++ SecurityFilterChain publicChain(HttpSecurity)
++ SecurityFilterChain apiKeyChain(HttpSecurity)
++ SecurityFilterChain fullyAuthenticatedChain(HttpSecurity)
+}
+
+class ApiKeyAuthenticationProvider implements AuthenticationProvider {
+- String validApiKey
++ Authentication authenticate(Authentication)
++ boolean supports(Class<?>)
+}
+
+class FeatherAuthenticationToken extends AbstractAuthenticationToken {
+- FeatherCredentials credentials
+- UserDetails principal
++ Object getCredentials()
++ Object getPrincipal()
+}
+
+record FeatherCredentials  {
++ String token
++ String apiKey
+}
+
+enum AuthenticationRoles {
+WITH_API_KEY
+WITH_JWT_TOKEN
+}
+
+FeatherManagerConfiguration o-- "*" AuthenticationProvider : manages >
+FeatherManagerConfiguration --> AuthenticationManager : provides >
+JwtTokenAuthenticationProvider --> JwtTokenService : uses >
+JwtTokenAuthenticationProvider --> UserService : uses >
+JwtTokenFilter --> AuthenticationManager : uses >
+ApiKeyFilter --> AuthenticationManager : uses >
+OAuth2Configuration --> OAuth2Provider : uses >
+OAuth2Configuration --> ClientRegistrationRepository : provides >
+OAuth2Configuration --> OAuth2AuthorizedClientService : provides >
+FeatherCorsConfiguration --> CorsConfigurationSource : provides >
+
+FeatherSecurityConfiguration -- FeatherAuthenticationEntryPoint : handles exceptions >
+FeatherSecurityConfiguration --> ApiKeyFilter : uses >
+FeatherSecurityConfiguration --> JwtTokenFilter: uses >
+JwtAuthenticationToken -l-> JwtTokenAuthenticationProvider : used by >
+ApiKeyAuthenticationToken --> ApiKeyAuthenticationProvider : used by >
+FeatherAuthenticationToken --> FeatherCredentials : contains >
+ApiKeyAuthenticationProvider --> AuthenticationRoles : uses >
+JwtTokenAuthenticationProvider --> AuthenticationRoles : uses >
+hide empty members
+@enduml

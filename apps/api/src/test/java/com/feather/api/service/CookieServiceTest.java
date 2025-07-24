@@ -60,11 +60,9 @@ class CookieServiceTest {
         final String targetCookieName = "anyCookie";
         final Cookie[] cookies = {};
 
-        // Act
-        final Optional<Cookie> result = classUnderTest.findCookie(cookies, targetCookieName);
+        // Act & Assert
+        assertThrows(BadCredentialsException.class, () -> classUnderTest.findCookie(cookies, targetCookieName));
 
-        // Assert
-        assertThat(result).isEmpty();
     }
 
     @Test

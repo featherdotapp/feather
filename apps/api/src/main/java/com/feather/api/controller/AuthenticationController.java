@@ -8,6 +8,7 @@ import com.feather.api.service.AuthenticationService;
 import com.feather.api.service.RedirectService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
-public class AuthenticationControllerController {
+public class AuthenticationController {
 
     private final OAuth2Provider oAuth2Provider;
     private final AuthenticationService authenticationService;
@@ -54,16 +55,20 @@ public class AuthenticationControllerController {
      * @param response HttpResponse
      */
     @GetMapping("/linkedin/callback")
-    public ResponseEntity<JwtTokenCredentials> linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response)
-            throws IOException {
+    public void linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response) throws IOException {
         final JwtTokenCredentials tokens = authenticationService.register(code);
-        //redirectService.registerRedirect(response, tokens);
-        return ResponseEntity.ok(tokens);
+        redirectService.registerRedirect(response, tokens);
     }
 
+    /**
+     * Endpoint to test if a user is authenticated and has access to api key/jwt-token secured endpoints
+     *
+     * @return a true boolean if the user is authenticated
+     */
+    @Profile("dev")
     @GetMapping("/linkedin/isAuthenticated")
-    public ResponseEntity<String> isAuthenticated() {
-        return ResponseEntity.ok("Is Authenticated");
+    public ResponseEntity<Boolean> isAuthenticated() {
+        return ResponseEntity.ok(Boolean.TRUE);
     }
 
     /**

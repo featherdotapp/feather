@@ -237,10 +237,8 @@ class JwtTokenFilterTest {
         when(jwtTokenService.extractUsername(VALID_TOKEN)).thenReturn(TEST_USERNAME);
         when(userService.getUserFromEmail(TEST_USERNAME)).thenThrow(new UsernameNotFoundException("User not found"));
 
-        // Act
+        // Act & Assert
         assertThrows(UsernameNotFoundException.class, () -> classUnderTest.doFilterInternal(request, response, filterChain));
-
-        // Assert
         verify(securityContext, never()).setAuthentication(any());
         verifyNoInteractions(authenticationManager);
     }

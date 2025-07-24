@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  description: Authentication API for Feather application
+  title: Feather API
+  version: 1.0.0
+servers:
+  - description: Local development server
+    url: http://localhost:8080
+tags:
+  - description: Operations related to user authentication
+    name: authentication
+paths:
+  /auth/linkedin/loginUrl:
+    get:
+      description: Generates the LinkedIn OAuth2 authorization URL. Users should be
+        redirected to this URL to initiate the OAuth2 flow.
+      operationId: linkedinLoginUrl
+      responses:
+        "200":
+          content:
+            text/plain:
+              schema:
+                example: https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=your_client_id&redirect_uri=your_redirect_uri&scope=your_scope
+                type: string
+          description: Successful operation
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized - Invalid API key
+      security:
+        - ApiKeyAuth: [ ]
+      summary: Get LinkedIn OAuth2 login URL
+      tags:
+        - authentication
+      x-accepts:
+        - application/json
+        - text/plain
+  /auth/linkedin/callback:
+    get:
+      description: "Handles the OAuth2 callback from LinkedIn after successful authorization.\
+        \ This endpoint: 1) Exchanges the authorization code for access token, 2)\
+        \ Retrieves user information from LinkedIn, 3) Creates or updates the user\
+        \ in the system, 4) Generates a JWT token for authentication"
+      operationId: linkedinCallback
+      parameters:
+        - description: The authorization code provided by LinkedIn's OAuth2 service
+          explode: true
+          in: query
+          name: code
+          required: true
+          schema:
+            type: string
+          style: form
+      responses:
+        "302":
+          description: Redirect to frontend with authentication tokens
+          headers:
+            Location:
+              description: URL to redirect to
+              explode: false
+              schema:
+                type: string
+              style: simple
+            Set-Cookie:
+              description: HTTP-only cookie containing the refresh token
+              explode: false
+              schema:
+                type: string
+              style: simple
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request - Invalid or expired authorization code
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      summary: Handle OAuth2 callback from LinkedIn
+      tags:
+        - authentication
+      x-accepts:
+        - application/json
+  /auth/linkedin/isAuthenticated:
+    get:
+      description: Endpoint to test if a user is authenticated and has access to API
+        key/JWT token secured endpoints. Only available in dev profile.
+      operationId: isAuthenticated
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example: true
+                type: boolean
+          description: Successful operation
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized - Invalid or missing token
+      security:
+        - ApiKeyAuth: [ ]
+          BearerAuth: [ ]
+      summary: Check if user is authenticated
+      tags:
+        - authentication
+      x-accepts:
+        - application/json
+  /auth/logout:
+    post:
+      description: Logs out the currently authenticated user by invalidating their
+        JWT tokens. This endpoint clears the access and refresh tokens associated
+        with the user.
+      operationId: logout
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example: true
+                type: boolean
+          description: Successful operation
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized - Invalid or missing token
+      security:
+        - BearerAuth: [ ]
+      summary: Logout user
+      tags:
+        - authentication
+      x-accepts:
+        - application/json
+components:
+  schemas:
+    Error:
+      example:
+        path: /auth/linkedin/isAuthenticated
+        error: Unauthorized
+        message: Invalid credentials
+        status: 401
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        status:
+          example: 401
+          format: int32
+          type: integer
+        error:
+          example: Unauthorized
+          type: string
+        message:
+          example: Invalid credentials
+          type: string
+        timestamp:
+          format: date-time
+          type: string
+        path:
+          example: /auth/linkedin/isAuthenticated
+          type: string
+      type: object
+    JwtTokenCredentials:
+      properties:
+        accessToken:
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+        refreshToken:
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+      type: object
+  securitySchemes:
+    ApiKeyAuth:
+      in: header
+      name: X-API-KEY
+      type: apiKey
+    BearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+
