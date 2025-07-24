@@ -183,6 +183,7 @@ class JwtTokenAuthenticationProviderTest {
         // Arrange
         final String invalidAccessToken = "invalid-access-token";
         final String validRefreshToken = "valid-refresh-token";
+        final String newAccessToken = "new-access-token";
         final SimpleGrantedAuthority apiKeyAuthority = new SimpleGrantedAuthority(AuthenticationRoles.WITH_API_KEY.name());
         final SimpleGrantedAuthority jwtTokenAuthority = new SimpleGrantedAuthority(AuthenticationRoles.WITH_JWT_TOKEN.name());
         final List<GrantedAuthority> value = new ArrayList<>(Collections.singleton(apiKeyAuthority));
@@ -194,6 +195,7 @@ class JwtTokenAuthenticationProviderTest {
         when(jwtTokenService.isJwtTokenValid(invalidAccessToken, user, ACCESS_TOKEN)).thenReturn(false);
         when(jwtTokenService.isTokenExpired(validRefreshToken)).thenReturn(false);
         when(jwtTokenService.isJwtTokenValid(validRefreshToken, user, REFRESH_TOKEN)).thenReturn(true);
+        when(jwtTokenService.generateJwtToken(user, ACCESS_TOKEN)).thenReturn(newAccessToken);
 
         securityContextHolderMock.when(() -> SecurityContextHolder.getContext().getAuthentication()).thenReturn(currentAuthentication);
         doReturn(value).when(currentAuthentication).getAuthorities();
@@ -208,6 +210,7 @@ class JwtTokenAuthenticationProviderTest {
         assertThat(resultToken.getAuthorities()).hasSize(2);
         assertThat(resultToken.getAuthorities()).contains(apiKeyAuthority);
         assertThat(resultToken.getAuthorities()).contains(jwtTokenAuthority);
+        verify(userService).updateUserToken(user, newAccessToken, ACCESS_TOKEN);
     }
 
 

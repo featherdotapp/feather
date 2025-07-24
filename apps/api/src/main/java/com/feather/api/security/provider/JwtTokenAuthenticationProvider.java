@@ -55,7 +55,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 throw new JwtAuthenticationException("Invalid Refresh Token");
             }
             final String newAccessToken = jwtTokenService.generateJwtToken(user, ACCESS_TOKEN);
-            userService.updateUserToken(user, newAccessToken, REFRESH_TOKEN);
+            userService.updateUserToken(user, newAccessToken, ACCESS_TOKEN);
             return createAuthenticationToken(newAccessToken, refreshToken, user);
         }
         if (jwtTokenService.isTokenExpired(accessToken)) {
