@@ -1,4 +1,4 @@
-package com.feather.api.exception;
+package com.feather.api.exception_handling;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;

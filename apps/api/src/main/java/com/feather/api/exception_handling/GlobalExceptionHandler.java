@@ -1,4 +1,4 @@
-package com.feather.api.exception;
+package com.feather.api.exception_handling;
 
 import java.util.HashMap;
 import java.util.Map;

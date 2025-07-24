@@ -17,6 +17,7 @@ import java.util.Set;
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
+import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.security.tokens.AuthenticationRoles;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
@@ -29,7 +30,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -130,7 +130,7 @@ class JwtTokenAuthenticationProviderTest {
     }
 
     @Test
-    void testAuthenticate_expiredRefreshToken_throwsBadCredentialsException() {
+    void testAuthenticate_expiredRefreshToken_throwsJwtAuthenticationException() {
         // Arrange
         final String expiredAccessToken = "expired-access-token";
         final String expiredRefreshToken = "expired-refresh-token";
@@ -143,15 +143,15 @@ class JwtTokenAuthenticationProviderTest {
         when(jwtTokenService.isTokenExpired(expiredRefreshToken)).thenReturn(true);
 
         // Act & Assert
-        final BadCredentialsException exception = assertThrows(
-                BadCredentialsException.class,
+        final JwtAuthenticationException exception = assertThrows(
+                JwtAuthenticationException.class,
                 () -> classUnderTest.authenticate(authentication)
         );
         assertThat(exception.getMessage()).isEqualTo("Expired Refresh Token, log in again to get a new Refresh Token.");
     }
 
     @Test
-    void testAuthenticate_invalidRefreshToken_throwsBadCredentialsException() {
+    void testAuthenticate_invalidRefreshToken_throwsJwtAuthenticationException() {
         // Arrange
         final String expiredAccessToken = "expired-access-token";
         final String invalidRefreshToken = "invalid-refresh-token";
@@ -165,15 +165,15 @@ class JwtTokenAuthenticationProviderTest {
         when(jwtTokenService.isJwtTokenValid(invalidRefreshToken, user, REFRESH_TOKEN)).thenReturn(false);
 
         // Act & Assert
-        final BadCredentialsException exception = assertThrows(
-                BadCredentialsException.class,
+        final JwtAuthenticationException exception = assertThrows(
+                JwtAuthenticationException.class,
                 () -> classUnderTest.authenticate(authentication)
         );
         assertThat(exception.getMessage()).isEqualTo("Invalid Refresh Token");
     }
 
     @Test
-    void testAuthenticate_invalidAccessToken_throwsBadCredentialsException() {
+    void testAuthenticate_invalidAccessToken_throwsJwtAuthenticationException() {
         // Arrange
         final String invalidAccessToken = "invalid-access-token";
         final String refreshToken = "refresh-token";
@@ -186,8 +186,8 @@ class JwtTokenAuthenticationProviderTest {
         when(jwtTokenService.isJwtTokenValid(invalidAccessToken, user, ACCESS_TOKEN)).thenReturn(false);
 
         // Act & Assert
-        final BadCredentialsException exception = assertThrows(
-                BadCredentialsException.class,
+        final JwtAuthenticationException exception = assertThrows(
+                JwtAuthenticationException.class,
                 () -> classUnderTest.authenticate(authentication)
         );
         assertThat(exception.getMessage()).isEqualTo("Invalid Access Token");

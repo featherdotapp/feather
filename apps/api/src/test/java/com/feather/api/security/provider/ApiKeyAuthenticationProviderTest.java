@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Field;
 
+import com.feather.api.security.exception_handling.exception.ApiKeyAuthenticationException;
 import com.feather.api.security.tokens.ApiKeyAuthenticationToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,7 +46,7 @@ class ApiKeyAuthenticationProviderTest {
     @Test
     void testAuthenticate_invalidApiKey_throwsBadCredentialsException() {
         final ApiKeyAuthenticationToken token = new ApiKeyAuthenticationToken("wrong-key");
-        assertThrows(BadCredentialsException.class, () -> classUnderTest.authenticate(token));
+        assertThrows(ApiKeyAuthenticationException.class, () -> classUnderTest.authenticate(token));
     }
 
     @Test

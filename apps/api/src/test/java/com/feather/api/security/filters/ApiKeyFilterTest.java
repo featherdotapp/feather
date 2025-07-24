@@ -1,6 +1,7 @@
 package com.feather.api.security.filters;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
@@ -10,6 +11,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
+import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
+import com.feather.api.security.exception_handling.exception.ApiKeyAuthenticationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,6 +45,8 @@ class ApiKeyFilterTest {
     private Authentication authentication;
     @Mock
     private SecurityContext context;
+    @Mock
+    private FeatherAuthenticationEntryPoint authenticationEntryPoint;
 
     private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
 
@@ -111,6 +116,23 @@ class ApiKeyFilterTest {
         assertThrows(IOException.class, () ->
                 classUnderTest.doFilterInternal(request, response, filterChain)
         );
+    }
+
+    @Test
+    void testDoFilterInternal_ApiKeyAuthenticationExceptionIsCaught() throws ServletException, IOException {
+        // Arrange
+        final String apiKey = "invalidApiKey";
+        when(request.getHeader("X-API-KEY")).thenReturn(apiKey);
+        securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(context);
+        doThrow(new ApiKeyAuthenticationException("Invalid API Key")).when(authenticationManager).authenticate(any());
+
+        // Act
+        classUnderTest.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+        verify(authenticationEntryPoint).commence(eq(request), eq(response), any(ApiKeyAuthenticationException.class));
+        verifyNoInteractions(filterChain);
     }
 
 }

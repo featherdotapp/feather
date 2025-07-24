@@ -10,12 +10,12 @@ import java.util.Set;
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
+import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.security.tokens.AuthenticationRoles;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
@@ -49,17 +49,17 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         final User user = (User) authentication.getPrincipal();
         if (jwtTokenService.isTokenExpired(accessToken)) {
             if (jwtTokenService.isTokenExpired(refreshToken)) {
-                throw new BadCredentialsException("Expired Refresh Token, log in again to get a new Refresh Token.");
+                throw new JwtAuthenticationException("Expired Refresh Token, log in again to get a new Refresh Token.");
             }
             if (!jwtTokenService.isJwtTokenValid(refreshToken, user, REFRESH_TOKEN)) {
-                throw new BadCredentialsException("Invalid Refresh Token");
+                throw new JwtAuthenticationException("Invalid Refresh Token");
             }
             final String newAccessToken = jwtTokenService.generateJwtToken(user, ACCESS_TOKEN);
             userService.updateUserToken(user, newAccessToken, REFRESH_TOKEN);
             return createAuthenticationToken(newAccessToken, refreshToken, user);
         }
         if (!jwtTokenService.isJwtTokenValid(accessToken, user, ACCESS_TOKEN)) {
-            throw new BadCredentialsException("Invalid Access Token");
+            throw new JwtAuthenticationException("Invalid Access Token");
         }
         return createAuthenticationToken(accessToken, refreshToken, user);
     }

@@ -3,7 +3,7 @@ package com.feather.api.security.configurations;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
 import static org.springframework.security.authorization.AuthorizationManagers.allOf;
 
-import com.feather.api.security.exception.FeatherAuthenticationEntryPoint;
+import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
 import com.feather.api.security.tokens.AuthenticationRoles;

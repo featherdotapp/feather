@@ -1,6 +1,9 @@
-package com.feather.api.security.exception;
+package com.feather.api.security.exception_handling;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -8,7 +11,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.feather.api.adapter.posthog.service.PostHogService;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +28,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class FeatherAuthenticationEntryPointTest {
@@ -43,8 +46,6 @@ class FeatherAuthenticationEntryPointTest {
     private ServletOutputStream outputStream;
     @Mock
     private SecurityContext securityContext;
-    @Mock
-    private ObjectMapper objectMapper;
 
     private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
 
@@ -105,5 +106,73 @@ class FeatherAuthenticationEntryPointTest {
         assertThat(properties)
                 .containsEntry("error", "Unauthorized")
                 .containsEntry("message", ERROR_MESSAGE);
+    }
+
+    @Test
+    void testCommence_withJwtAuthenticationException_tracksJwtEvent() throws IOException {
+        when(request.getRemoteAddr()).thenReturn(REMOTE_IP);
+        when(response.getOutputStream()).thenReturn(outputStream);
+        final AuthenticationException jwtException = new com.feather.api.security.exception_handling.exception.JwtAuthenticationException(ERROR_MESSAGE);
+
+        classUnderTest.commence(request, response, jwtException);
+
+        verify(postHogService).trackEvent(eq(REMOTE_IP), eq("jwt_authentication_exception"), anyMap());
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+    }
+
+    @Test
+    void testCommence_withApiKeyAuthenticationException_tracksApiKeyEvent() throws IOException {
+        when(request.getRemoteAddr()).thenReturn(REMOTE_IP);
+        when(response.getOutputStream()).thenReturn(outputStream);
+        final AuthenticationException apiKeyException = new com.feather.api.security.exception_handling.exception.ApiKeyAuthenticationException(ERROR_MESSAGE);
+
+        classUnderTest.commence(request, response, apiKeyException);
+
+        verify(postHogService).trackEvent(eq(REMOTE_IP), eq("api_key_authentication_exception"),
+                anyMap());
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+    }
+
+    @Test
+    void testCommence_writesCorrectJsonToResponse() throws IOException {
+        when(request.getRemoteAddr()).thenReturn(REMOTE_IP);
+        when(response.getOutputStream()).thenReturn(outputStream);
+
+        classUnderTest.commence(request, response, authException);
+
+        // Verify that ObjectMapper writes the correct map to the output stream
+        // (the actual call is new ObjectMapper().writeValue(...), so we can't mock it directly)
+        // Instead, verify that response.getOutputStream() is called and status/contentType are set
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
+        verify(response).getOutputStream();
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+    }
+
+    @Test
+    void testCommence_withUsernameNotFoundException_tracksEventAndSetsResponse() throws IOException {
+        // Arrange
+        final AuthenticationException exception = new UsernameNotFoundException(ERROR_MESSAGE);
+        when(request.getRemoteAddr()).thenReturn(REMOTE_IP);
+        when(response.getOutputStream()).thenReturn(outputStream);
+
+        // Act
+        classUnderTest.commence(request, response, exception);
+
+        // Assert
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+        verify(postHogService).trackEvent(
+                eq(REMOTE_IP),
+                eq("user_not_found_exception"),
+                argThat(map ->
+                        "Unauthorized".equals(map.get("error")) && ERROR_MESSAGE.equals(map.get("message"))
+                )
+        );
     }
 }

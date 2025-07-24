@@ -2,11 +2,11 @@ package com.feather.api.security.provider;
 
 import java.util.List;
 
+import com.feather.api.security.exception_handling.exception.ApiKeyAuthenticationException;
 import com.feather.api.security.tokens.ApiKeyAuthenticationToken;
 import com.feather.api.security.tokens.AuthenticationRoles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,7 +35,7 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
         if (validApiKey.equals(apiKey)) {
             return new ApiKeyAuthenticationToken(apiKey, List.of(new SimpleGrantedAuthority(AuthenticationRoles.WITH_API_KEY.name())));
         }
-        throw new BadCredentialsException("Invalid API Key");
+        throw new ApiKeyAuthenticationException("Invalid API Key");
     }
 
     /**

@@ -19,6 +19,8 @@ import java.util.Optional;
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
+import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
+import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.service.CookieService;
 import jakarta.servlet.FilterChain;
@@ -72,6 +74,8 @@ class JwtTokenFilterTest {
     private User user;
     @Mock
     private Cookie refreshTokenCookie;
+    @Mock
+    private FeatherAuthenticationEntryPoint authenticationEntryPoint;
 
     private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
 
@@ -224,23 +228,45 @@ class JwtTokenFilterTest {
     }
 
     @Test
-    void testDoFilterInternal_whenUserNotFound_continuesFilterChain() {
+    void testDoFilterInternal_whenJwtAuthenticationExceptionIsCaught() throws ServletException, IOException {
         // Arrange
         when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(BEARER_PREFIX + VALID_TOKEN);
         when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME))).thenReturn(Optional.of(refreshTokenCookie));
         when(refreshTokenCookie.getValue()).thenReturn(VALID_REFRESH_TOKEN);
-
         securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getCredentials()).thenReturn(VALID_API_KEY);
+        when(jwtTokenService.extractUsername(VALID_TOKEN)).thenThrow(new JwtAuthenticationException("JWT error"));
 
+        // Act
+        classUnderTest.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+        verify(authenticationEntryPoint).commence(eq(request), eq(response), any(JwtAuthenticationException.class));
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    void testDoFilterInternal_whenUserNotFound_continuesFilterChain() throws ServletException, IOException {
+        // Arrange
+        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(BEARER_PREFIX + VALID_TOKEN);
+        when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME))).thenReturn(Optional.of(refreshTokenCookie));
+        when(refreshTokenCookie.getValue()).thenReturn(VALID_REFRESH_TOKEN);
+        securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getCredentials()).thenReturn(VALID_API_KEY);
         when(jwtTokenService.extractUsername(VALID_TOKEN)).thenReturn(TEST_USERNAME);
         when(userService.getUserFromEmail(TEST_USERNAME)).thenThrow(new UsernameNotFoundException("User not found"));
 
-        // Act & Assert
-        assertThrows(UsernameNotFoundException.class, () -> classUnderTest.doFilterInternal(request, response, filterChain));
-        verify(securityContext, never()).setAuthentication(any());
-        verifyNoInteractions(authenticationManager);
+        // Act
+        classUnderTest.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
+        verify(authenticationEntryPoint).commence(eq(request), eq(response), any(UsernameNotFoundException.class));
+        verify(filterChain, never()).doFilter(request, response);
+
     }
 
     @Test

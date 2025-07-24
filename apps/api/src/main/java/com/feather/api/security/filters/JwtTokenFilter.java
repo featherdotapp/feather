@@ -10,6 +10,8 @@ import java.util.Optional;
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
+import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
+import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import com.feather.api.service.CookieService;
@@ -42,6 +44,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final CookieService cookieService;
     private final JwtTokenService jwtTokenService;
     private final UserService userService;
+    private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
 
     private static boolean hasBearerPrefix(final String token) {
         return token.startsWith(BEARER_PREFIX);
@@ -63,18 +66,22 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final String accessToken = request.getHeader(AUTHORIZATION_HEADER);
         final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
         final String apiKey = getApiKey();
-
-        if (refreshTokenCookie.isPresent() && accessToken != null && apiKey != null) {
-            final String refreshToken = refreshTokenCookie.get().getValue();
-            if (!refreshToken.isEmpty() && hasBearerPrefix(accessToken)) {
-                final User user = loadUserFromToken(accessToken);
-                final FeatherCredentials credentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
-                final Authentication auth = new FeatherAuthenticationToken(user, credentials);
-                final Authentication applicationAuthentication = authenticationManager.authenticate(auth);
-                SecurityContextHolder.getContext().setAuthentication(applicationAuthentication);
+        try {
+            if (refreshTokenCookie.isPresent() && accessToken != null && apiKey != null) {
+                final String refreshToken = refreshTokenCookie.get().getValue();
+                if (!refreshToken.isEmpty() && hasBearerPrefix(accessToken)) {
+                    final User user = loadUserFromToken(accessToken);
+                    final FeatherCredentials credentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
+                    final Authentication auth = new FeatherAuthenticationToken(user, credentials);
+                    final Authentication applicationAuthentication = authenticationManager.authenticate(auth);
+                    SecurityContextHolder.getContext().setAuthentication(applicationAuthentication);
+                }
             }
+            filterChain.doFilter(request, response);
+        } catch (final JwtAuthenticationException | UsernameNotFoundException e) {
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(request, response, e);
         }
-        filterChain.doFilter(request, response);
     }
 
     private String getApiKey() {

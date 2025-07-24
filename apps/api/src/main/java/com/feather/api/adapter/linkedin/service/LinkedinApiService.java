@@ -35,7 +35,7 @@ public class LinkedinApiService {
      * @param authorizationCode The authorization code received from LinkedIn's OAuth2 authorization endpoint
      * @return LinkedInTokenResponse containing the access token and related information
      * @throws RestClientException if the exchange fails or the response cannot be parsed - handled in
-     * {@link com.feather.api.exception.GlobalExceptionHandler GlobalExceptionHanlder}
+     * {@link com.feather.api.exception_handling.GlobalExceptionHandler GlobalExceptionHanlder}
      */
     public LinkedInTokenResponse exchangeAuthorizationCodeForAccessToken(final String authorizationCode) throws RestClientException {
         final RestTemplate restTemplate = new RestTemplate();
@@ -67,7 +67,7 @@ public class LinkedinApiService {
      * @param bearerAccessToken The OAuth2 access token to authenticate the request
      * @return LinkedinUserInfoResponseDTO containing the user's profile information
      * @throws RestClientException if the exchange fails or the response cannot be parsed - handled in
-     * {@link com.feather.api.exception.GlobalExceptionHandler GlobalExceptionHanlder}
+     * {@link com.feather.api.exception_handling.GlobalExceptionHandler GlobalExceptionHanlder}
      */
     public LinkedinUserInfoResponseDTO getMemberDetails(final String bearerAccessToken) throws RestClientException {
         final RestTemplate restTemplate = new RestTemplate();
