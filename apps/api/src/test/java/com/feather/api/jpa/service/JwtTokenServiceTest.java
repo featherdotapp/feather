@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.feather.api.jpa.model.User;
 import com.feather.api.shared.TokenType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -33,6 +34,8 @@ class JwtTokenServiceTest {
 
     @Mock
     private UserDetails userDetails;
+    @Mock
+    private User user;
     @InjectMocks
     private JwtTokenService jwtTokenService;
 
@@ -134,6 +137,72 @@ class JwtTokenServiceTest {
 
         // Assert
         assertThat(subject).isEqualTo(USER_EMAIL);
+    }
+
+    @Test
+    void isJwtTokenValid_shouldReturnTrue_forValidAccessToken() {
+        // Arrange
+        when(userDetails.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getUsername()).thenReturn(USER_EMAIL);
+        doReturn(jwtTokenService.generateJwtToken(userDetails, TokenType.ACCESS_TOKEN)).when(user).getAccessToken();
+        final String token = user.getAccessToken();
+        // Act
+        final boolean result = jwtTokenService.isJwtTokenValid(token, user, TokenType.ACCESS_TOKEN);
+        // Assert
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void isJwtTokenValid_shouldReturnFalse_forInvalidAccessToken() {
+        // Arrange
+        when(userDetails.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getAccessToken()).thenReturn("invalid-token");
+        doReturn(Collections.singleton(new SimpleGrantedAuthority(USER_ROLE))).when(userDetails).getAuthorities();
+        final String token = jwtTokenService.generateJwtToken(userDetails, TokenType.ACCESS_TOKEN);
+        // Act
+        final boolean result = jwtTokenService.isJwtTokenValid(token, user, TokenType.ACCESS_TOKEN);
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void isJwtTokenValid_shouldReturnTrue_forValidRefreshToken() {
+        // Arrange
+        when(userDetails.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getUsername()).thenReturn(USER_EMAIL);
+        doReturn(jwtTokenService.generateJwtToken(userDetails, TokenType.REFRESH_TOKEN)).when(user).getRefreshToken();
+        final String token = user.getRefreshToken();
+        // Act
+        final boolean result = jwtTokenService.isJwtTokenValid(token, user, TokenType.REFRESH_TOKEN);
+        // Assert
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void isJwtTokenValid_shouldReturnFalse_forInvalidRefreshToken() {
+        // Arrange
+        when(userDetails.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getRefreshToken()).thenReturn("invalid-token");
+        final String token = jwtTokenService.generateJwtToken(userDetails, TokenType.REFRESH_TOKEN);
+        // Act
+        final boolean result = jwtTokenService.isJwtTokenValid(token, user, TokenType.REFRESH_TOKEN);
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void isJwtTokenValid_shouldReturnFalse_whenUsernameDoesNotMatch() {
+        // Arrange
+        when(userDetails.getUsername()).thenReturn(USER_EMAIL);
+        when(user.getUsername()).thenReturn("other@example.com");
+        doReturn(jwtTokenService.generateJwtToken(userDetails, TokenType.ACCESS_TOKEN)).when(user).getAccessToken();
+        final String token = user.getAccessToken();
+        // Act
+        final boolean result = jwtTokenService.isJwtTokenValid(token, user, TokenType.ACCESS_TOKEN);
+        // Assert
+        assertThat(result).isFalse();
     }
 
     // Helper method to access private method for testing
