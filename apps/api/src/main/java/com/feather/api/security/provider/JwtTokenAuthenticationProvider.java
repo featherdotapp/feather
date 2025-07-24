@@ -47,7 +47,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         final String accessToken = credentials.accessToken();
         final String refreshToken = credentials.refreshToken();
         final User user = (User) authentication.getPrincipal();
-        if (jwtTokenService.isTokenExpired(accessToken)) {
+        if (!jwtTokenService.isJwtTokenValid(accessToken, user, ACCESS_TOKEN)) {
             if (jwtTokenService.isTokenExpired(refreshToken)) {
                 throw new JwtAuthenticationException("Expired Refresh Token, log in again to get a new Refresh Token.");
             }
@@ -58,8 +58,8 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             userService.updateUserToken(user, newAccessToken, REFRESH_TOKEN);
             return createAuthenticationToken(newAccessToken, refreshToken, user);
         }
-        if (!jwtTokenService.isJwtTokenValid(accessToken, user, ACCESS_TOKEN)) {
-            throw new JwtAuthenticationException("Invalid Access Token");
+        if (jwtTokenService.isTokenExpired(accessToken)) {
+            throw new JwtAuthenticationException("Expired Access Token");
         }
         return createAuthenticationToken(accessToken, refreshToken, user);
     }
