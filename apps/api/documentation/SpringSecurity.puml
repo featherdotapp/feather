@@ -30,6 +30,7 @@ class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
 
 class JwtTokenFilter extends OncePerRequestFilter {
+- FeatherAuthenticationEntryPoint authenticationEntryPoint
 - AuthenticationManager authenticationManager
 # void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
 }
@@ -44,6 +45,7 @@ class FeatherCorsConfiguration {
 
 
 class ApiKeyFilter extends OncePerRequestFilter {
+- FeatherAuthenticationEntryPoint authenticationEntryPoint
 - AuthenticationManager authenticationManager
 # void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
 }
@@ -67,7 +69,7 @@ class JwtAuthenticationToken extends AbstractAuthenticationToken{
 }
 
 
-class FeatherAuthenticationEntryPoint implements AuthenticationEntryPoint{
+class FeatherAuthenticationEntryPoint {
 + void commence(HttpServletRequest,HttpServletResponse,AuthenticationException)
 }
 
@@ -75,7 +77,6 @@ class FeatherSecurityConfiguration {
 - ApiKeyFilter apiKeyFilter
 - JwtTokenFilter jwtTokenFilter
 - CorsConfigurationSource corsConfigurationSource
-- FeatherAuthenticationEntryPoint authenticationEntryPoint
 + SecurityFilterChain publicChain(HttpSecurity)
 + SecurityFilterChain apiKeyChain(HttpSecurity)
 + SecurityFilterChain fullyAuthenticatedChain(HttpSecurity)
@@ -115,7 +116,9 @@ OAuth2Configuration --> ClientRegistrationRepository : provides >
 OAuth2Configuration --> OAuth2AuthorizedClientService : provides >
 FeatherCorsConfiguration --> CorsConfigurationSource : provides >
 
-FeatherSecurityConfiguration -- FeatherAuthenticationEntryPoint : handles exceptions >
+FeatherAuthenticationEntryPoint ..|> AuthenticationEntryPoint
+JwtTokenFilter -- FeatherAuthenticationEntryPoint : handles exceptions >
+ApiKeyFilter -- FeatherAuthenticationEntryPoint : handles exceptions >
 FeatherSecurityConfiguration --> ApiKeyFilter : uses >
 FeatherSecurityConfiguration --> JwtTokenFilter: uses >
 JwtAuthenticationToken -l-> JwtTokenAuthenticationProvider : used by >
@@ -123,5 +126,11 @@ ApiKeyAuthenticationToken --> ApiKeyAuthenticationProvider : used by >
 FeatherAuthenticationToken --> FeatherCredentials : contains >
 ApiKeyAuthenticationProvider --> AuthenticationRoles : uses >
 JwtTokenAuthenticationProvider --> AuthenticationRoles : uses >
+
+' Security filter chains
+FeatherSecurityConfiguration -u-> SecurityFilterChain : defines publicChain
+FeatherSecurityConfiguration -u-> SecurityFilterChain : defines apiKeyChain
+FeatherSecurityConfiguration -u-> SecurityFilterChain : defines fullyAuthenticatedChain
+
 hide empty members
 @enduml
