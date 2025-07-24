@@ -66,7 +66,7 @@ public class AuthenticationController {
      * @return a true boolean if the user is authenticated
      */
     @Profile("dev")
-    @GetMapping("/linkedin/isAuthenticated")
+    @GetMapping("/isAuthenticated")
     public ResponseEntity<Boolean> isAuthenticated() {
         return ResponseEntity.ok(Boolean.TRUE);
     }

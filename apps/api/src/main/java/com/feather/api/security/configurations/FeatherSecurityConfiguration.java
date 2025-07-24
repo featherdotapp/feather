@@ -80,7 +80,10 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain fullyAuthenticatedChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/auth/linkedin/isAuthenticated")
+                .securityMatcher(
+                        "/auth/isAuthenticated",
+                        "auth/logout"
+                )
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
