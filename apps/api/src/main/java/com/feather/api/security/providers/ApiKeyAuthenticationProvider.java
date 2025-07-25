@@ -1,4 +1,4 @@
-package com.feather.api.security.provider;
+package com.feather.api.security.providers;
 
 import java.util.List;
 

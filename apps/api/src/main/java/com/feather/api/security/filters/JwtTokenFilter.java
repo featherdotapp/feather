@@ -70,11 +70,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             if (refreshTokenCookie.isPresent() && accessToken != null && apiKey != null) {
                 final String refreshToken = refreshTokenCookie.get().getValue();
                 if (!refreshToken.isEmpty() && hasBearerPrefix(accessToken)) {
-                    final User user = loadUserFromToken(accessToken);
-                    final FeatherCredentials credentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
-                    final Authentication auth = new FeatherAuthenticationToken(user, credentials);
-                    final Authentication applicationAuthentication = authenticationManager.authenticate(auth);
-                    SecurityContextHolder.getContext().setAuthentication(applicationAuthentication);
+                    handleAuthentication(response, apiKey, accessToken, refreshToken);
                 }
             }
             filterChain.doFilter(request, response);
@@ -82,6 +78,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response, e);
         }
+    }
+
+    private void handleAuthentication(final HttpServletResponse response, final String apiKey, final String accessToken, final String refreshToken) {
+        // TODO: check fo rexpiredJwtException + tests for new code
+        final User user = loadUserFromToken(accessToken);
+        final FeatherCredentials newCredentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
+        final Authentication authentication = new FeatherAuthenticationToken(user, newCredentials);
+        final Authentication currentAuthentication = authenticationManager.authenticate(authentication);
+        SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
+        final FeatherCredentials updatedCredentials = (FeatherCredentials) currentAuthentication.getCredentials();
+        sendAccessTokenInResponseIfUpdated(response, newCredentials, updatedCredentials);
     }
 
     private String getApiKey() {
@@ -96,6 +103,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final String token = accessToken.substring(BEARER_PREFIX.length());
         final String userName = jwtTokenService.extractUsername(token);
         return userService.getUserFromEmail(userName);
+    }
+
+    private void sendAccessTokenInResponseIfUpdated(final HttpServletResponse response, final FeatherCredentials credentials,
+            final FeatherCredentials updatedCredentials) {
+        final boolean accessTokenUnchanged = credentials.accessToken().equals(updatedCredentials.accessToken());
+        if (!accessTokenUnchanged) {
+            response.setHeader(AUTHORIZATION_HEADER, updatedCredentials.accessToken());
+        }
     }
 
 }

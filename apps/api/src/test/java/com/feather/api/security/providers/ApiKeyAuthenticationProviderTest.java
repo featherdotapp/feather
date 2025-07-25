@@ -1,4 +1,4 @@
-package com.feather.api.security.provider;
+package com.feather.api.security.providers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
