@@ -36,9 +36,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<String> handleUserNotFoundException(final AuthenticationException e, final HttpServletRequest request) {
         final String clientIp = request.getRemoteAddr();
+        final String event = "authentication_exception";
         final Map<String, Object> properties = new HashMap<>();
-        postHogService.trackEvent(clientIp, "authentication_exception", properties);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        return trackAndBuildErrorResponse(clientIp, event, properties, HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
     /**
@@ -51,9 +51,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<String> handleRestClientException(final RestClientException e, final HttpServletRequest request) {
+        final String clientIp = request.getRemoteAddr();
+        final String event = "rest_client_exception";
+        final String errorMessage = "Error communicating with external service: " + e.getMessage();
         final Map<String, Object> properties = new HashMap<>();
-        postHogService.trackEvent(request.getRemoteAddr(), "rest_client_exception", properties);
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("Error communicating with external service: " + e.getMessage());
+        return trackAndBuildErrorResponse(clientIp, event, properties, HttpStatus.BAD_GATEWAY, errorMessage);
+    }
+
+    private ResponseEntity<String> trackAndBuildErrorResponse(final String eventDistinct, final String event, final Map<String, Object> properties,
+            final HttpStatus status, final String errorMessage) {
+        postHogService.trackEvent(eventDistinct, event, properties);
+        return ResponseEntity.status(status).body(errorMessage);
     }
 
 }

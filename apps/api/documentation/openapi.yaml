@@ -27,7 +27,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/401Error'
           description: Unauthorized - Invalid API key
       security:
         - ApiKeyAuth: [ ]
@@ -69,18 +69,18 @@ paths:
               schema:
                 type: string
               style: simple
-        "400":
+        "401":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/401Error'
           description: Bad request - Invalid or expired authorization code
-        "500":
+        "502":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: Internal server error
+                $ref: '#/components/schemas/502Error'
+          description: Bad gateway - Error communicating with LinkedIn API
       summary: Handle OAuth2 callback from LinkedIn
       tags:
         - authentication
@@ -103,7 +103,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/401Error'
           description: Unauthorized - Invalid or missing token
       security:
         - ApiKeyAuth: [ ]
@@ -131,7 +131,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/401Error'
           description: Unauthorized - Invalid or missing token
       security:
         - BearerAuth: [ ]
@@ -142,29 +142,28 @@ paths:
         - application/json
 components:
   schemas:
-    Error:
+    401Error:
       example:
-        path: /auth/linkedin/isAuthenticated
         error: Unauthorized
         message: Invalid credentials
-        status: 401
-        timestamp: 2000-01-23T04:56:07.000+00:00
       properties:
-        status:
-          example: 401
-          format: int32
-          type: integer
         error:
           example: Unauthorized
           type: string
         message:
           example: Invalid credentials
           type: string
-        timestamp:
-          format: date-time
+      type: object
+    502Error:
+      example:
+        error: Bad Gateway
+        message: Error communicating with external service
+      properties:
+        error:
+          example: Bad Gateway
           type: string
-        path:
-          example: /auth/linkedin/isAuthenticated
+        message:
+          example: Error communicating with external service
           type: string
       type: object
     JwtTokenCredentials:
@@ -185,4 +184,3 @@ components:
       bearerFormat: JWT
       scheme: bearer
       type: http
-
