@@ -80,7 +80,7 @@ jobs:
   sonar-analysis:
     # Run sonar-analysis if either build-java or build-ts succeeded
     needs: [ build-java, build-ts ]
-    if: always()
+    if: needs.build-java.result == 'success' || needs.build-java.result == 'skipped' || needs.build-ts.result == 'success' || needs.build-ts.result == 'skipped'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
