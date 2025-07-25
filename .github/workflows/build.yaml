@@ -2,14 +2,14 @@ name: Build and Analyze
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
     paths:
       - 'apps/api/**'
       - 'apps/landing/**'
       - 'apps/web/**'
       - 'packages/ui/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   changes:
@@ -79,8 +79,8 @@ jobs:
 
   sonar-analysis:
     # Run sonar-analysis if either build-java or build-ts succeeded
-    needs: [build-java, build-ts]
-    if: needs.build-java.result == 'success' || needs.build-java.result == 'skipped' || needs.build-ts.result == 'success' || needs.build-ts.result == 'skipped'
+    needs: [ build-java, build-ts ]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
