@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
+    // TODO: to test this + JWTTF + ATF + JTV
     private final JwtTokenValidator jwtTokenValidator;
     private final UserService userService;
     private final AuthenticationTokenFactory authenticationTokenFactory;

@@ -56,14 +56,12 @@ public class JwtTokenBuilder {
     }
 
     private TokenDetails createTokenDetails(final UserDetails userDetails, final TokenType tokenType) {
-        final long expiration;
+        long expiration = refreshTokenExpiration;
         final Map<String, Object> extraClaims = new HashMap<>();
         if (tokenType == TokenType.ACCESS_TOKEN) {
             final List<String> userRoles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
             extraClaims.put("roles", userRoles);
             expiration = accessTokenExpiration;
-        } else {
-            expiration = refreshTokenExpiration;
         }
         return new TokenDetails(expiration, extraClaims);
     }

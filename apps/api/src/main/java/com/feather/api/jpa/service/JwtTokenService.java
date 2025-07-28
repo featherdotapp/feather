@@ -36,6 +36,7 @@ public class JwtTokenService {
             final String userName = jwtTokenParser.extractClaim(token, Claims::getSubject);
             return userService.getUserFromEmail(userName);
         } catch (final ExpiredJwtException e) {
+            // The user is extracted here from the refresh token, and the invalidation of the jwt access token will be checked in the authentication provider
             return extractUsernameFromRefreshToken(refreshToken);
         }
     }
