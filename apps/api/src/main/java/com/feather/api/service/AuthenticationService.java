@@ -7,10 +7,10 @@ import com.feather.api.adapter.linkedin.dto.LinkedInTokenResponse;
 import com.feather.api.adapter.linkedin.dto.LinkedinUserInfoResponseDTO;
 import com.feather.api.adapter.linkedin.service.LinkedinApiService;
 import com.feather.api.jpa.model.User;
-import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
+import com.feather.api.service.jwt.JwtTokenBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final JwtTokenService jwtTokenService;
+    private final JwtTokenBuilder jwtTokenBuilder;
     private final LinkedinApiService linkedinApiService;
     private final UserService userService;
 
@@ -56,8 +56,8 @@ public class AuthenticationService {
     }
 
     private JwtTokenCredentials createAndSaveJwtTokenCredentials(final User existantUser) {
-        final String accessToken = jwtTokenService.generateJwtToken(existantUser, ACCESS_TOKEN);
-        final String refreshToken = jwtTokenService.generateJwtToken(existantUser, REFRESH_TOKEN);
+        final String accessToken = jwtTokenBuilder.buildToken(existantUser, ACCESS_TOKEN);
+        final String refreshToken = jwtTokenBuilder.buildToken(existantUser, REFRESH_TOKEN);
         existantUser.setAccessToken(accessToken);
         existantUser.setRefreshToken(refreshToken);
         userService.saveUser(existantUser);

@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
-import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
@@ -43,7 +42,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
     private final CookieService cookieService;
     private final JwtTokenService jwtTokenService;
-    private final UserService userService;
     private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
 
     private static boolean hasBearerPrefix(final String token) {
@@ -81,8 +79,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private void handleAuthentication(final HttpServletResponse response, final String apiKey, final String accessToken, final String refreshToken) {
-        // TODO: check fo rexpiredJwtException + tests for new code
-        final User user = loadUserFromToken(accessToken);
+        final User user = jwtTokenService.loadUserFromToken(accessToken, refreshToken);
         final FeatherCredentials newCredentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
         final Authentication authentication = new FeatherAuthenticationToken(user, newCredentials);
         final Authentication currentAuthentication = authenticationManager.authenticate(authentication);
@@ -97,12 +94,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 && currentAuth.getCredentials() instanceof final String castedCredentials
                 ? castedCredentials
                 : null;
-    }
-
-    private User loadUserFromToken(final String accessToken) throws UsernameNotFoundException {
-        final String token = accessToken.substring(BEARER_PREFIX.length());
-        final String userName = jwtTokenService.extractUsername(token);
-        return userService.getUserFromEmail(userName);
     }
 
     private void sendAccessTokenInResponseIfUpdated(final HttpServletResponse response, final FeatherCredentials credentials,

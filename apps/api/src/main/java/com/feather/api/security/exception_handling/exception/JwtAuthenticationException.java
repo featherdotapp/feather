@@ -8,6 +8,10 @@ import org.springframework.security.core.AuthenticationException;
  */
 public class JwtAuthenticationException extends AuthenticationException {
 
+    public static final String EXPIRED_REFRESH_TOKEN = "Expired Refresh Token, log in again to get a new Refresh Token.";
+    public static final String INVALID_ACCESS_TOKEN = "Access Token is invalid";
+    public static final String INVALID_REFRESH_TOKEN = "Refresh Token is invalid";
+
     /**
      * Constructs a new JwtAuthenticationException with the specified detail message.
      *

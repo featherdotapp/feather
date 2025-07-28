@@ -5,9 +5,9 @@ import static com.feather.api.shared.TokenType.ACCESS_TOKEN;
 import java.util.Objects;
 
 import com.feather.api.jpa.model.User;
-import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.helpers.AuthenticationTokenFactory;
+import com.feather.api.security.helpers.JwtTokenValidator;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
-    private final JwtTokenService jwtTokenService;
+    private final JwtTokenValidator jwtTokenValidator;
     private final UserService userService;
     private final AuthenticationTokenFactory authenticationTokenFactory;
 
@@ -41,7 +41,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         final String accessToken = credentials.accessToken();
         final String refreshToken = credentials.refreshToken();
         final User user = (User) authentication.getPrincipal();
-        final String validAccessToken = jwtTokenService.validateOrRefreshAccessToken(accessToken, refreshToken, user);
+        final String validAccessToken = jwtTokenValidator.validateOrRefreshAccessToken(accessToken, refreshToken, user);
         if (!Objects.equals(validAccessToken, accessToken)) {
             userService.updateUserToken(user, validAccessToken, ACCESS_TOKEN);
         }

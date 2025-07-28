@@ -12,10 +12,10 @@ import com.feather.api.adapter.linkedin.dto.LinkedInTokenResponse;
 import com.feather.api.adapter.linkedin.dto.LinkedinUserInfoResponseDTO;
 import com.feather.api.adapter.linkedin.service.LinkedinApiService;
 import com.feather.api.jpa.model.User;
-import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
+import com.feather.api.service.jwt.JwtTokenBuilder;
 import com.feather.api.shared.TokenType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class AuthenticationServiceTest {
     @Mock
     private UserService userService;
     @Mock
-    private JwtTokenService jwtTokenService;
+    private JwtTokenBuilder jwtTokenBuilder;
     @Mock
     private LinkedinApiService linkedinApiService;
     @Mock
@@ -77,8 +77,8 @@ class AuthenticationServiceTest {
         when(linkedinApiService.getMemberDetails(SOME_ACCESS_TOKEN)).thenReturn(linkedinUserInfo);
         when(linkedinUserInfo.email()).thenReturn(USER_EMAIL);
         when(userService.getUserFromEmail(USER_EMAIL)).thenReturn(user);
-        when(jwtTokenService.generateJwtToken(user, TokenType.ACCESS_TOKEN)).thenReturn(ACCESS_TOKEN);
-        when(jwtTokenService.generateJwtToken(user, TokenType.REFRESH_TOKEN)).thenReturn(REFRESH_TOKEN);
+        when(jwtTokenBuilder.buildToken(user, TokenType.ACCESS_TOKEN)).thenReturn(ACCESS_TOKEN);
+        when(jwtTokenBuilder.buildToken(user, TokenType.REFRESH_TOKEN)).thenReturn(REFRESH_TOKEN);
 
         // Act
         final JwtTokenCredentials register = classUnderTest.register(CODE);
@@ -99,8 +99,8 @@ class AuthenticationServiceTest {
         when(linkedinApiService.getMemberDetails(SOME_ACCESS_TOKEN)).thenReturn(linkedinUserInfo);
         when(linkedinUserInfo.email()).thenReturn(USER_EMAIL);
         when(userService.getUserFromEmail(USER_EMAIL)).thenThrow(new UsernameNotFoundException("User not found"));
-        when(jwtTokenService.generateJwtToken(any(User.class), eq(TokenType.ACCESS_TOKEN))).thenReturn(ACCESS_TOKEN);
-        when(jwtTokenService.generateJwtToken(any(User.class), eq(TokenType.REFRESH_TOKEN))).thenReturn(REFRESH_TOKEN);
+        when(jwtTokenBuilder.buildToken(any(User.class), eq(TokenType.ACCESS_TOKEN))).thenReturn(ACCESS_TOKEN);
+        when(jwtTokenBuilder.buildToken(any(User.class), eq(TokenType.REFRESH_TOKEN))).thenReturn(REFRESH_TOKEN);
 
         // Act
         final JwtTokenCredentials register = classUnderTest.register(CODE);
