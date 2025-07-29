@@ -59,17 +59,27 @@ The security architecture is based on Spring Security with custom filters and au
 ### Custom Authentication Components
 
 - **Filters**:
-    - `ApiKeyFilter`: Extracts API key from requests
-    - `JwtTokenFilter`: Extracts JWT tokens from requests
+    - `ApiKeyFilter`: Extracts and validates API key from requests
+    - `JwtTokenFilter`: Handles JWT token validation and refresh flow
+        - Extracts access token from Authorization header
+        - Extracts refresh token from HTTP-only cookie
+        - Manages token refresh when access token expires
 
 - **Authentication Providers**:
-    - `ApiKeyAuthenticationProvider`: Validates API keys
-    - `JwtTokenAuthenticationProvider`: Validates JWT tokens and generates a new access token if needed, and if refresh token is valid
+    - `ApiKeyAuthenticationProvider`: Validates API keys and generates appropriate authentication token
+    - `JwtTokenAuthenticationProvider`: Handles JWT token validation and refresh
+        - Validates both access and refresh tokens
+        - Generates new access token if current one is expired
+        - Maintains user's authentication state
 
 - **Authentication Tokens**:
     - `ApiKeyAuthenticationToken`: Represents API key authentication
     - `JwtAuthenticationToken`: Represents JWT token authentication
-    - `FeatherAuthenticationToken`: Base token class for authentication
+    - `FeatherAuthenticationToken`: Base token class for session persistence
+    - `FeatherCredentials`: Serializable record storing authentication credentials
+        - currentCredentials: Current authentication state (API key)
+        - accessToken: JWT access token
+        - refreshToken: JWT refresh token
 
 ## API Endpoints
 
@@ -104,11 +114,25 @@ The application uses JWT tokens for authentication with two types:
     - Short-lived token used for API authentication
     - Contains user roles and permissions
     - Sent in Authorization header as "Bearer {token}"
+    - Automatically refreshed when expired if refresh token is valid
 
 2. **Refresh Token**:
     - Long-lived token used to get new access tokens
-    - Stored as HTTP-only cookie
+    - Stored as HTTP-only cookie for security
     - Used when access token expires
+    - Validated against user's stored refresh token
+
+### Token Refresh Flow
+
+1. Client sends request with expired access token
+2. JwtTokenFilter detects expired token
+3. If refresh token is valid:
+    - New access token is generated
+    - Token is returned in Authorization header
+    - Request continues with new token
+4. If refresh token is invalid:
+    - Authentication error is returned
+    - User must re-authenticate
 
 ## OAuth2 Integration
 
