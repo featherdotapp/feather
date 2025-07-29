@@ -1,7 +1,6 @@
 package com.feather.api.security.exception_handling;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,9 +33,10 @@ public class FeatherAuthenticationEntryPoint implements AuthenticationEntryPoint
     public void commence(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        final Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("error", "Unauthorized");
-        errorDetails.put("message", authException.getMessage());
+        final Map<String, Object> errorDetails = Map.of(
+                "error", "Unauthorized",
+                "message", authException.getMessage()
+        );
         handlePostHogEvent(request, authException, errorDetails);
         SecurityContextHolder.clearContext();
         new ObjectMapper().writeValue(response.getOutputStream(), errorDetails);

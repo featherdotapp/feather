@@ -11,7 +11,6 @@ import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
-import com.feather.api.security.tokens.ApiKeyAuthenticationToken;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import com.feather.api.service.CookieService;
@@ -91,8 +90,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     @NonNull
     private String getApiKey() {
-        final ApiKeyAuthenticationToken currentAuth = (ApiKeyAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        return currentAuth.getCredentials();
+        final Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+        return currentAuth.getCredentials().toString();
     }
 
     private void sendAccessTokenInResponseIfUpdated(final HttpServletResponse response, final FeatherCredentials credentials,
