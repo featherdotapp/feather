@@ -109,9 +109,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if [ "${{ needs.changes.outputs.java }}" = "true" ]; then
-            mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=feather-api --file apps/api/pom.xml
+            mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.organization=featherdotapp --file apps/api/pom.xml
           fi
           if [ "${{ needs.changes.outputs.ts }}" = "true" ]; then
             pnpm install
-            pnpm sonar-scanner -Dsonar.projectKey=feather-web
+            pnpm sonar-scanner -Dsonar.organization=featherdotapp
           fi
