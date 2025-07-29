@@ -109,9 +109,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if [ "${{ needs.changes.outputs.java }}" = "true" ]; then
-            mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.organization=featherdotapp --file apps/api/pom.xml
+            mvn -B verify sonar:sonar -Pcoverage --file apps/api/pom.xml
           fi
           if [ "${{ needs.changes.outputs.ts }}" = "true" ]; then
             pnpm install
-            pnpm sonar-scanner -Dsonar.organization=featherdotapp
+            pnpm sonar-scanner -Dsonar.coverage.exclusions="**/*.ts,**/*.tsx" -Dsonar.javascript.lcov.reportPaths=""
           fi

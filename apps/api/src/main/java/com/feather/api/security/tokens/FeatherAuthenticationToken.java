@@ -17,6 +17,12 @@ public class FeatherAuthenticationToken extends AbstractAuthenticationToken {
     private final FeatherCredentials credentials;
     private final UserDetails principal;
 
+    /**
+     * Constructor for FeatherAuthenticationToken with an empty authority list
+     *
+     * @param principal principal
+     * @param credentials feather credentials
+     */
     public FeatherAuthenticationToken(final UserDetails principal, final FeatherCredentials credentials) {
         super(null);
         this.credentials = credentials;
@@ -24,6 +30,13 @@ public class FeatherAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
+    /**
+     * Constructor for FeatherAuthenticationToken
+     *
+     * @param principal principal
+     * @param credentials feather credentials
+     * @param authorities authorities for the Authentication to have
+     */
     public FeatherAuthenticationToken(final UserDetails principal, final FeatherCredentials credentials,
             final Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
@@ -40,6 +53,16 @@ public class FeatherAuthenticationToken extends AbstractAuthenticationToken {
     @Override
     public Object getPrincipal() {
         return principal;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
 }
