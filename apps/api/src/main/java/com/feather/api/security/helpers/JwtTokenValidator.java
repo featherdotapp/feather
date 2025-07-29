@@ -12,7 +12,6 @@ import com.feather.api.security.exception_handling.exception.JwtAuthenticationEx
 import com.feather.api.service.jwt.JwtTokenBuilder;
 import com.feather.api.service.jwt.JwtTokenParser;
 import com.feather.api.shared.TokenType;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -60,16 +59,16 @@ public class JwtTokenValidator {
     }
 
     private void validateTokensOrThrow(final String accessToken, final String refreshToken, final User user) throws JwtAuthenticationException {
-        if (isJwtTokenInvalid(accessToken, user, TokenType.ACCESS_TOKEN)) {
-            throw new JwtAuthenticationException(INVALID_ACCESS_TOKEN);
-        }
         if (isJwtTokenInvalid(refreshToken, user, TokenType.REFRESH_TOKEN)) {
             throw new JwtAuthenticationException(INVALID_REFRESH_TOKEN);
+        }
+        if (isJwtTokenInvalid(accessToken, user, TokenType.ACCESS_TOKEN)) {
+            throw new JwtAuthenticationException(INVALID_ACCESS_TOKEN);
         }
     }
 
     private boolean isJwtTokenInvalid(final String token, final User user, final TokenType tokenType) {
-        final String username = jwtTokenParser.extractClaim(token, Claims::getSubject);
+        final String username = jwtTokenParser.extractSubject(token);
         return (!username.equals(user.getUsername())) || !isTokenValidForUser(token, user, tokenType);
     }
 
@@ -81,7 +80,7 @@ public class JwtTokenValidator {
     }
 
     private boolean isTokenExpired(final String token) {
-        final Date expiration = jwtTokenParser.extractClaim(token, Claims::getExpiration);
+        final Date expiration = jwtTokenParser.extractExpirationDate(token);
         return expiration.before(new Date());
     }
 }

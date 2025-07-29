@@ -1,8 +1,9 @@
 package com.feather.api.service.jwt;
 
-import java.util.function.Function;
+import java.util.Date;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,18 @@ public class JwtTokenParser {
     private final JwtTokenBuilder jwtTokenBuilder;
 
     /**
-     * Extracts a specific claim from the provided JWT token.
+     * Extracts expiration Date from token
      *
-     * @param token The JWT token from which the claim is to be extracted.
-     * @param claimsResolver A function to resolve the specific claim from the token's claims.
-     * @param <T> The type of the claim to be extracted.
-     * @return The extracted claim of type T.
+     * @param token token to extract expiration from
+     * @return the expiration Date
      */
-    public <T> T extractClaim(final String token, final Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    public Date extractExpirationDate(final String token) {
+        try {
+
+            return extractAllClaims(token).getExpiration();
+        } catch (final ExpiredJwtException e) {
+            return e.getClaims().getExpiration();
+        }
     }
 
     private Claims extractAllClaims(final String token) {
@@ -40,6 +43,20 @@ public class JwtTokenParser {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    /**
+     * Extracts Subject from a token
+     *
+     * @param token token to extract subject from
+     * @return the Subject
+     */
+    public String extractSubject(final String token) {
+        try {
+            return extractAllClaims(token).getSubject();
+        } catch (final ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        }
     }
 
 }

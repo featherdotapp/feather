@@ -13,20 +13,20 @@ public class ApiKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String apiKey;
 
-    public ApiKeyAuthenticationToken(String apiKey) {
+    public ApiKeyAuthenticationToken(final String apiKey) {
         super(null);
         this.apiKey = apiKey;
         setAuthenticated(false);
     }
 
-    public ApiKeyAuthenticationToken(String apiKey, Collection<? extends GrantedAuthority> authorities) {
+    public ApiKeyAuthenticationToken(final String apiKey, final Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.apiKey = apiKey;
         setAuthenticated(true);
     }
 
     @Override
-    public Object getCredentials() {
+    public String getCredentials() {
         return apiKey;
     }
 

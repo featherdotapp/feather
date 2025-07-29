@@ -11,6 +11,7 @@ import com.feather.api.jpa.model.User;
 import com.feather.api.jpa.service.JwtTokenService;
 import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
+import com.feather.api.security.tokens.ApiKeyAuthenticationToken;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import com.feather.api.service.CookieService;
@@ -65,7 +66,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
         final String apiKey = getApiKey();
         try {
-            if (refreshTokenCookie.isPresent() && accessToken != null && apiKey != null) {
+            if (refreshTokenCookie.isPresent() && accessToken != null) {
                 final String refreshToken = refreshTokenCookie.get().getValue();
                 if (!refreshToken.isEmpty() && hasBearerPrefix(accessToken)) {
                     handleAuthentication(response, apiKey, accessToken, refreshToken);
@@ -79,7 +80,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private void handleAuthentication(final HttpServletResponse response, final String apiKey, final String accessToken, final String refreshToken) {
-        final User user = jwtTokenService.loadUserFromToken(accessToken, refreshToken);
+        final User user = jwtTokenService.loadUserFromToken(accessToken);
         final FeatherCredentials newCredentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
         final Authentication authentication = new FeatherAuthenticationToken(user, newCredentials);
         final Authentication currentAuthentication = authenticationManager.authenticate(authentication);
@@ -88,12 +89,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         sendAccessTokenInResponseIfUpdated(response, newCredentials, updatedCredentials);
     }
 
+    @NonNull
     private String getApiKey() {
-        final Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        return currentAuth != null
-                && currentAuth.getCredentials() instanceof final String castedCredentials
-                ? castedCredentials
-                : null;
+        final ApiKeyAuthenticationToken currentAuth = (ApiKeyAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        return currentAuth.getCredentials();
     }
 
     private void sendAccessTokenInResponseIfUpdated(final HttpServletResponse response, final FeatherCredentials credentials,
