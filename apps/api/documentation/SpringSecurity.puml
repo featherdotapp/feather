@@ -1,136 +1,164 @@
 @startuml
-abstract class AbstractAuthenticationToken
-abstract class OncePerRequestFilter
-interface AuthenticationManager
 
-class ApiKeyAuthenticationToken extends AbstractAuthenticationToken {
-- String apiKey
-+ Object getCredentials()
-+ Object getPrincipal()
+package "Security Configuration" {
+    class FeatherSecurityConfiguration {
+        + securityFilterChain(HttpSecurity): SecurityFilterChain
+        + corsConfigurationSource(): CorsConfigurationSource
+        + passwordEncoder(): PasswordEncoder
+    }
+
+    class FeatherCorsConfiguration {
+        + getCorsConfiguration(): CorsConfiguration
+    }
+
+    class FeatherManagerConfiguration {
+        + authenticationManager(AuthenticationConfiguration): AuthenticationManager
+    }
+
+    class FeatherOAuth2Configuration {
+        + clientRegistrations(): List<ClientRegistration>
+    }
 }
 
+package "Authentication" {
+    interface Authentication {
+    }
 
-class FeatherManagerConfiguration {
-- List<AuthenticationProvider> authenticationProviders
-+ AuthenticationManager authenticationManager()
+    abstract class FeatherAuthenticationToken {
+        # principal: Object
+        # credentials: FeatherCredentials
+        # authorities: Collection<GrantedAuthority>
+        + getPrincipal(): Object
+        + getCredentials(): Object
+        + getAuthorities(): Collection<GrantedAuthority>
+    }
+
+    class ApiKeyAuthenticationToken {
+        + ApiKeyAuthenticationToken(Object, String)
+    }
+
+    class JwtTokenAuthenticationToken {
+        + JwtTokenAuthenticationToken(Object, JwtTokenCredentials)
+    }
+
+    FeatherAuthenticationToken --|> Authentication
+    ApiKeyAuthenticationToken --|> FeatherAuthenticationToken
+    JwtTokenAuthenticationToken --|> FeatherAuthenticationToken
 }
 
-class OAuth2Configuration {
-- OAuth2Provider oAuth2Provider
-+ ClientRegistrationRepository clientRegistrationRepository()
-+ OAuth2AuthorizedClientService customAuthorizedClientService(ClientRegistrationRepository)
+package "Credentials" {
+    record FeatherCredentials {
+        - String apiKey
+        - String accessToken
+        - String refreshToken
+    }
+
+    record JwtTokenCredentials {
+        - String accessToken
+        - String refreshToken
+    }
+
 }
 
-class JwtTokenAuthenticationProvider implements AuthenticationProvider {
-- JwtTokenService jwtTokenService
-- UserService userService
-+ Authentication authenticate(Authentication)
-+ boolean supports(Class<?>)
+package "Authentication Providers" {
+    interface AuthenticationProvider {
+        + authenticate(Authentication): Authentication
+        + supports(Class<?>): boolean
+    }
+
+    class ApiKeyAuthenticationProvider {
+        - userService: UserService
+        - authenticationTokenFactory: AuthenticationTokenFactory
+        + authenticate(Authentication): Authentication
+        + supports(Class<?>): boolean
+    }
+
+    class JwtTokenAuthenticationProvider {
+        - jwtTokenValidator: JwtTokenValidator
+        - userService: UserService
+        - authenticationTokenFactory: AuthenticationTokenFactory
+        + authenticate(Authentication): Authentication
+        + supports(Class<?>): boolean
+    }
+
+    ApiKeyAuthenticationProvider ..|> AuthenticationProvider
+    JwtTokenAuthenticationProvider ..|> AuthenticationProvider
 }
 
+package "Filters" {
+    abstract class OncePerRequestFilter
 
-class JwtTokenFilter extends OncePerRequestFilter {
-- FeatherAuthenticationEntryPoint authenticationEntryPoint
-- AuthenticationManager authenticationManager
-# void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
+    class ApiKeyFilter {
+        - authenticationManager: AuthenticationManager
+        - authenticationEntryPoint: FeatherAuthenticationEntryPoint
+        # doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain)
+    }
+
+    class JwtTokenFilter {
+        - authenticationManager: AuthenticationManager
+        - cookieService: CookieService
+        - jwtTokenService: JwtTokenService
+        - authenticationEntryPoint: FeatherAuthenticationEntryPoint
+        # doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain)
+    }
+
+    ApiKeyFilter --|> OncePerRequestFilter
+    JwtTokenFilter --|> OncePerRequestFilter
 }
 
+package "Helpers" {
+    class AuthenticationTokenFactory {
+        + buildAuthenticationToken(String, String, User): FeatherAuthenticationToken
+        - combineAuthorities(Collection<GrantedAuthority>): Set<GrantedAuthority>
+    }
 
-class FeatherCorsConfiguration {
-- List<String> allowedOrigins
-+ CorsConfigurationSource devCorsConfigurationSource()
-+ CorsConfigurationSource prodCorsConfigurationSource()
-- UrlBasedCorsConfigurationSource provideConfigurationSource(CorsConfiguration)
+    class JwtTokenValidator {
+        - jwtTokenService: JwtTokenService
+        + validateOrRefreshAccessToken(String, String, User): String
+    }
 }
 
+package "Exception Handling" {
+    class FeatherAuthenticationEntryPoint {
+        + commence(HttpServletRequest, HttpServletResponse, AuthenticationException)
+    }
 
-class ApiKeyFilter extends OncePerRequestFilter {
-- FeatherAuthenticationEntryPoint authenticationEntryPoint
-- AuthenticationManager authenticationManager
-# void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
+    exception ApiKeyAuthenticationException {
+        + ApiKeyAuthenticationException(String)
+    }
+
+    exception JwtAuthenticationException {
+        + JwtAuthenticationException(String)
+    }
+
+    exception AuthenticationException {}
+
+    ApiKeyAuthenticationException --|> AuthenticationException
+    JwtAuthenticationException --|> AuthenticationException
 }
 
-
-class OAuth2Provider {
-+ {static} String LINKEDIN_CLIENT_REGISTRATION_ID
-- String linkedinClientId
-- String linkedinClientSecret
-- String linkedinRedirectUri
-- String linkedinScope
-+ List<ClientRegistration> getClientRegistrations()
+package "OAuth2" {
+    enum OAuth2Provider {
+        GOOGLE
+        GITHUB
+        + getRegistrationId(): String
+    }
 }
 
+' Relationships
+FeatherSecurityConfiguration --> ApiKeyFilter
+FeatherSecurityConfiguration --> JwtTokenFilter
+FeatherSecurityConfiguration --> FeatherCorsConfiguration
 
-class JwtAuthenticationToken extends AbstractAuthenticationToken{
-- String token
-- UserDetails principal
-+ Object getCredentials()
-+ Object getPrincipal()
-}
+ApiKeyAuthenticationProvider --> AuthenticationTokenFactory
+JwtTokenAuthenticationProvider -u-> AuthenticationTokenFactory
+JwtTokenAuthenticationProvider -u-> JwtTokenValidator
 
+ApiKeyFilter --> ApiKeyAuthenticationProvider
+JwtTokenFilter --> JwtTokenAuthenticationProvider
 
-class FeatherAuthenticationEntryPoint {
-+ void commence(HttpServletRequest,HttpServletResponse,AuthenticationException)
-}
-
-class FeatherSecurityConfiguration {
-- ApiKeyFilter apiKeyFilter
-- JwtTokenFilter jwtTokenFilter
-- CorsConfigurationSource corsConfigurationSource
-+ SecurityFilterChain publicChain(HttpSecurity)
-+ SecurityFilterChain apiKeyChain(HttpSecurity)
-+ SecurityFilterChain fullyAuthenticatedChain(HttpSecurity)
-}
-
-class ApiKeyAuthenticationProvider implements AuthenticationProvider {
-- String validApiKey
-+ Authentication authenticate(Authentication)
-+ boolean supports(Class<?>)
-}
-
-class FeatherAuthenticationToken extends AbstractAuthenticationToken {
-- FeatherCredentials credentials
-- UserDetails principal
-+ Object getCredentials()
-+ Object getPrincipal()
-}
-
-record FeatherCredentials  {
-+ String token
-+ String apiKey
-}
-
-enum AuthenticationRoles {
-WITH_API_KEY
-WITH_JWT_TOKEN
-}
-
-FeatherManagerConfiguration o-- "*" AuthenticationProvider : manages >
-FeatherManagerConfiguration --> AuthenticationManager : provides >
-JwtTokenAuthenticationProvider --> JwtTokenService : uses >
-JwtTokenAuthenticationProvider --> UserService : uses >
-JwtTokenFilter --> AuthenticationManager : uses >
-ApiKeyFilter --> AuthenticationManager : uses >
-OAuth2Configuration --> OAuth2Provider : uses >
-OAuth2Configuration --> ClientRegistrationRepository : provides >
-OAuth2Configuration --> OAuth2AuthorizedClientService : provides >
-FeatherCorsConfiguration --> CorsConfigurationSource : provides >
-
-FeatherAuthenticationEntryPoint ..|> AuthenticationEntryPoint
-JwtTokenFilter -- FeatherAuthenticationEntryPoint : handles exceptions >
-ApiKeyFilter -- FeatherAuthenticationEntryPoint : handles exceptions >
-FeatherSecurityConfiguration --> ApiKeyFilter : uses >
-FeatherSecurityConfiguration --> JwtTokenFilter: uses >
-JwtAuthenticationToken -l-> JwtTokenAuthenticationProvider : used by >
-ApiKeyAuthenticationToken --> ApiKeyAuthenticationProvider : used by >
-FeatherAuthenticationToken --> FeatherCredentials : contains >
-ApiKeyAuthenticationProvider --> AuthenticationRoles : uses >
-JwtTokenAuthenticationProvider --> AuthenticationRoles : uses >
-
-' Security filter chains
-FeatherSecurityConfiguration -u-> SecurityFilterChain : defines publicChain
-FeatherSecurityConfiguration -u-> SecurityFilterChain : defines apiKeyChain
-FeatherSecurityConfiguration -u-> SecurityFilterChain : defines fullyAuthenticatedChain
+FeatherAuthenticationToken --> FeatherCredentials
 
 hide empty members
+
 @enduml
