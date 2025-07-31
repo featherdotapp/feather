@@ -95,16 +95,22 @@ To add new endpoints to the Feather application
 
 2. **Configure Security**:
     - Determine required authentication level for your endpoint
-    - Add endpoint to appropriate security filter chain in `FeatherSecurityConfiguration`:
-      ```java
-      @Bean
-      public SecurityFilterChain chain(final HttpSecurity http) throws Exception {
-          http
-              .securityMatcher("/your-path/**") // Add the path for the new endpoint
-              .authorizeHttpRequests(auth -> auth.anyRequest().hasAuthority());
-          return http.build();
-      }
-      ```
+    - Add appropriate security level in your endpoint using annotations:
+        - `@ApiKeyAuthenticate`: api key required
+        - `@FullyAuthenticated`: api key + jwt access and refresh token required
+        - `@Unauthenticated`: no auth required endpoint
+    ```java
+    @FullyAuthenticated
+    @GetMapping("/isAuthenticated")
+    public ResponseEntity<Boolean> isAuthenticated() {
+         return ResponseEntity.ok(Boolean.TRUE);
+     }
+     ```
+
+    ```
+    When creating a new endpointt, do not add the request parameter in the Mapping annotation, it could lead to problems with the Custom Annotation 
+   Authentication. Instead use @RequestParameter in the parameters of the method.
+    ```
 
 ## JWT Token Management
 

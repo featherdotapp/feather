@@ -84,12 +84,12 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void login_shouldLogOutUserAndReturnResult() {
+    void logout_shouldLogOutUserAndReturnResult() {
         // Arrange
         when(authenticationService.logOut()).thenReturn(true);
 
         // Act
-        final ResponseEntity<Boolean> result = classUnderTest.login();
+        final ResponseEntity<Boolean> result = classUnderTest.logout();
 
         // Assert
         verify(authenticationService).logOut();
@@ -98,12 +98,12 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void login_shouldHandleFailedLogout() {
+    void logout_shouldHandleFailedLogout() {
         // Arrange
         when(authenticationService.logOut()).thenReturn(false);
 
         // Act
-        final ResponseEntity<Boolean> result = classUnderTest.login();
+        final ResponseEntity<Boolean> result = classUnderTest.logout();
 
         // Assert
         verify(authenticationService).logOut();

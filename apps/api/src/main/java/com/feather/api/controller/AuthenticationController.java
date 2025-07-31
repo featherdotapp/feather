@@ -2,6 +2,9 @@ package com.feather.api.controller;
 
 import java.io.IOException;
 
+import com.feather.api.security.annotations.ApiKeyAuthenticated;
+import com.feather.api.security.annotations.FullyAuthenticated;
+import com.feather.api.security.annotations.Unauthenticated;
 import com.feather.api.security.oauth2.OAuth2Provider;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
 import com.feather.api.service.AuthenticationService;
@@ -34,6 +37,7 @@ public class AuthenticationController {
      *
      * @return String containing the complete LinkedIn authorization URL with all required parameters
      */
+    @ApiKeyAuthenticated
     @GetMapping("/linkedin/loginUrl")
     public String linkedinLoginUrl() {
         return "https://www.linkedin.com/oauth/v2/authorization" +
@@ -54,6 +58,7 @@ public class AuthenticationController {
      * @param code The authorization code provided by LinkedIn's OAuth2 service
      * @param response HttpResponse
      */
+    @Unauthenticated
     @GetMapping("/linkedin/callback")
     public void linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response) throws IOException {
         final JwtTokenCredentials tokens = authenticationService.register(code);
@@ -66,6 +71,7 @@ public class AuthenticationController {
      * @return a true boolean if the user is authenticated
      */
     @Profile("dev")
+    @FullyAuthenticated
     @GetMapping("/isAuthenticated")
     public ResponseEntity<Boolean> isAuthenticated() {
         return ResponseEntity.ok(Boolean.TRUE);
@@ -77,8 +83,9 @@ public class AuthenticationController {
      *
      * @return ResponseEntity<Boolean> indicating whether the logout operation was successful
      */
+    @FullyAuthenticated
     @PostMapping("/logout")
-    public ResponseEntity<Boolean> login() {
+    public ResponseEntity<Boolean> logout() {
         final boolean loggedOut = authenticationService.logOut();
         return ResponseEntity.ok(loggedOut);
     }

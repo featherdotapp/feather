@@ -3,6 +3,7 @@ package com.feather.api.security.configurations;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
 import static org.springframework.security.authorization.AuthorizationManagers.allOf;
 
+import com.feather.api.security.configurations.model.EndpointPaths;
 import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.filters.ApiKeyFilter;
 import com.feather.api.security.filters.JwtTokenFilter;
@@ -29,6 +30,7 @@ public class FeatherSecurityConfiguration {
     private final JwtTokenFilter jwtTokenFilter;
     private final CorsConfigurationSource corsConfigurationSource;
     private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
+    private final EndpointPaths endpointPaths;
 
     /**
      * Security filter chain for public endpoints (no authentication required).
@@ -41,7 +43,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain publicChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/auth/linkedin/callback")
+                .securityMatcher(endpointPaths.unauthenticatedPaths())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -60,7 +62,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain apiKeyChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/auth/linkedin/loginUrl")
+                .securityMatcher(endpointPaths.apiKeyAuthenticatedPaths())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
@@ -80,10 +82,7 @@ public class FeatherSecurityConfiguration {
     public SecurityFilterChain fullyAuthenticatedChain(final HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher(
-                        "/auth/isAuthenticated",
-                        "auth/logout"
-                )
+                .securityMatcher(endpointPaths.fullyAuthenticatedPaths())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
                 )
