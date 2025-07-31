@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FeatherSecurityEndpointPathConfiguration {
 
-    // TODO: test
     private final ApplicationContext applicationContext;
     private final PathResolver pathResolver;
 
@@ -70,7 +69,7 @@ public class FeatherSecurityEndpointPathConfiguration {
 
     private void addPathToSet(final Set<String> targetSet, final Set<String> set1, final Set<String> set2, final String resolvedPath) {
         if (set1.contains(resolvedPath) || set2.contains(resolvedPath)) {
-            throw new PathResolutionException("Endpoint path '" + resolvedPath + "' is assigned to multiple authentication levels.");
+            throw new PathResolutionException(PathResolutionException.ErrorType.DUPLICATE_PATH, resolvedPath);
         }
         targetSet.add(resolvedPath);
     }
