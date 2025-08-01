@@ -79,8 +79,8 @@ class EndpointPathsTest {
     @Test
     void testNullSafety() {
         final EndpointPaths ep = new EndpointPaths(new String[] { "/a" }, new String[] { "/b" }, new String[] { "/c" });
-        assertNotEquals(null, ep);
-        assertThat(ep).isNotInstanceOf(String.class);
+        final boolean result = ep.equals(null);
+        assertThat(result).isFalse();
     }
 
     @Test
