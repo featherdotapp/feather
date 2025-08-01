@@ -15,7 +15,7 @@ public class TestController {
 
     @GetMapping
     public String test() {
-        return "Hello, Feather API!";
+        return "Hello, Feather APA!";
     }
 
     @GetMapping("/posthog")

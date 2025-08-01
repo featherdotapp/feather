@@ -25,7 +25,7 @@ class TestControllerTest {
         final String test = classUnderTest.test();
 
         // Assert
-        assertThat(test).isEqualTo("Hello, Feather API!");
+        assertThat(test).isEqualTo("Hello, Feather APA!");
 
     }
 
