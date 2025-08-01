@@ -28,13 +28,12 @@ class JwtTokenServiceTest {
     void testLoadUserFromToken() {
         // Arrange
         final String token = "valid.access.token";
-        final String bearer = "Bearer " + token;
         final String username = "someEmail@gmail.com";
         when(tokenParser.extractSubject(token)).thenReturn(username);
         when(userService.getUserFromEmail(username)).thenReturn(user);
 
         // Act
-        final User result = classUnderTest.loadUserFromToken(bearer);
+        final User result = classUnderTest.loadUserFromToken(token);
 
         // Assert
         assertThat(result).isEqualTo(user);

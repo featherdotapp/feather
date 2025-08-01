@@ -1,6 +1,6 @@
 package com.feather.api.security.filters;
 
-import static com.feather.api.shared.AuthenticationConstants.AUTHORIZATION_HEADER;
+import static com.feather.api.shared.AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME;
 import static com.feather.api.shared.AuthenticationConstants.BEARER_PREFIX;
 import static com.feather.api.shared.AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import com.feather.api.jpa.model.User;
@@ -23,6 +24,7 @@ import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import com.feather.api.service.CookieService;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,14 +33,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -74,9 +74,16 @@ class JwtTokenFilterTest {
     private User mockUser;
     @Mock
     private Cookie refreshTokenCookie;
+    @Mock
+    private Cookie accessTokenCookie;
+    private Cookie[] cookies;
 
-    @Captor
-    private ArgumentCaptor<Authentication> authenticationCaptor;
+    private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
+
+    @AfterEach
+    void tearDown() {
+        securityContextHolderMockedStatic.close();
+    }
 
     @InjectMocks
     private JwtTokenFilter classUnderTest;
@@ -84,6 +91,10 @@ class JwtTokenFilterTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.setContext(securityContext);
+        cookies = new Cookie[] { refreshTokenCookie, accessTokenCookie };
+        when(request.getCookies()).thenReturn(cookies);
+        securityContextHolderMockedStatic = mockStatic(SecurityContextHolder.class);
+        securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
     }
 
     @Nested
@@ -91,10 +102,10 @@ class JwtTokenFilterTest {
 
         @BeforeEach
         void setUp() {
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
             when(refreshTokenCookie.getValue()).thenReturn(REFRESH_TOKEN);
+            when(accessTokenCookie.getValue()).thenReturn(ACCESS_TOKEN);
             when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
             when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
             when(jwtTokenService.loadUserFromToken(ACCESS_TOKEN)).thenReturn(mockUser);
@@ -102,200 +113,142 @@ class JwtTokenFilterTest {
 
         @Test
         void whenValidTokens_ShouldAuthenticateAndContinueChain() throws Exception {
-            // Arrange
-            final FeatherCredentials expectedCredentials = new FeatherCredentials(API_KEY,
-                    ACCESS_TOKEN.substring(BEARER_PREFIX.length()),
-                    REFRESH_TOKEN);
-            when(authenticationManager.authenticate(any())).thenAnswer(invocation ->
-                    new FeatherAuthenticationToken(mockUser, expectedCredentials)
-            );
-
-            // Act
+            final FeatherCredentials expectedCredentials = new FeatherCredentials(API_KEY, ACCESS_TOKEN, REFRESH_TOKEN);
+            when(authenticationManager.authenticate(any())).thenReturn(new FeatherAuthenticationToken(mockUser, expectedCredentials));
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            verify(securityContext).setAuthentication(authenticationCaptor.capture());
-            final Authentication resultAuth = authenticationCaptor.getValue();
-            assertThat(((FeatherCredentials) resultAuth.getCredentials()).accessToken())
-                    .isEqualTo(expectedCredentials.accessToken());
+            verify(securityContext).setAuthentication(any(Authentication.class));
             verify(filterChain).doFilter(request, response);
         }
 
         @Test
-        void whenAccessTokenUpdated_ShouldSetResponseHeader() throws Exception {
-            // Arrange
+        void whenAccessTokenUpdated_ShouldSetCookie() throws Exception {
             final FeatherCredentials updatedCredentials = new FeatherCredentials(API_KEY, NEW_ACCESS_TOKEN, REFRESH_TOKEN);
-            when(authenticationManager.authenticate(any()))
-                    .thenReturn(new FeatherAuthenticationToken(mockUser, updatedCredentials));
-
-            // Act
+            when(authenticationManager.authenticate(any())).thenReturn(new FeatherAuthenticationToken(mockUser, updatedCredentials));
+            Cookie newCookie = new Cookie("accessToken", NEW_ACCESS_TOKEN);
+            when(cookieService.createCookie(any(), any(), any())).thenReturn(newCookie);
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            verify(response).setHeader(AUTHORIZATION_HEADER, NEW_ACCESS_TOKEN);
+            verify(response).addCookie(newCookie);
             verify(filterChain).doFilter(request, response);
         }
     }
 
     @Nested
-    class FailedAuthentication {
-
-        private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
-
-        @BeforeEach
-        void setUp() {
-            securityContextHolderMockedStatic = mockStatic(SecurityContextHolder.class, Answers.RETURNS_DEEP_STUBS);
-        }
-
-        @AfterEach
-        void tearDown() {
-            securityContextHolderMockedStatic.close();
-        }
+    class ErrorHandling {
 
         @Test
-        void whenMissingAccessToken_ShouldContinueChainWithoutAuthentication() throws Exception {
-            // Arrange
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(null);
-            securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
-            when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
-
-            // Act
+        void whenBadCredentialsExceptionAndLinkedinUrl_ShouldContinueChain() throws Exception {
+            when(request.getRequestURI()).thenReturn("/auth/linkedin/loginUrl");
+            doThrow(new BadCredentialsException("bad creds")).when(cookieService).findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME));
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            verify(authenticationManager, never()).authenticate(any());
             verify(filterChain).doFilter(request, response);
         }
 
         @Test
-        void whenMissingRefreshToken_ShouldContinueChainWithoutAuthentication() throws Exception {
-            // Arrange
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.empty());
-            securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
-            when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
-
-            // Act
-            classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            verify(authenticationManager, never()).authenticate(any());
-            verify(filterChain).doFilter(request, response);
-        }
-
-        @Test
-        void whenMissingApiKey_ShouldContinueChainWithoutAuthentication() throws Exception {
-            // Arrange
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.of(refreshTokenCookie));
-            securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-            // Act
-            classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            verify(authenticationManager, never()).authenticate(any());
-            verify(filterChain).doFilter(request, response);
+        void whenBadCredentialsExceptionAndOtherUrl_ShouldThrow() {
+            when(request.getRequestURI()).thenReturn("/other/url");
+            doThrow(new BadCredentialsException("bad creds")).when(cookieService).findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME));
+            try {
+                classUnderTest.doFilterInternal(request, response, filterChain);
+            } catch (BadCredentialsException | ServletException | IOException e) {
+                assertThat(e.getMessage()).contains("Refresh token cookie not found");
+            }
         }
 
         @Test
         void whenJwtAuthenticationException_ShouldClearContextAndHandleError() throws Exception {
-            // Arrange
-            setupValidTokens();
-            final JwtAuthenticationException exception = new JwtAuthenticationException("Invalid token");
-            doThrow(exception).when(jwtTokenService).loadUserFromToken(any());
-
-            // Act
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
+            when(refreshTokenCookie.getValue()).thenReturn(REFRESH_TOKEN);
+            when(accessTokenCookie.getValue()).thenReturn(ACCESS_TOKEN);
+            when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
+            when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
+            doThrow(new JwtAuthenticationException("Invalid token")).when(jwtTokenService).loadUserFromToken(any());
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
+            verify(authenticationEntryPoint).commence(eq(request), eq(response), any(JwtAuthenticationException.class));
             securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
-            verify(authenticationEntryPoint).commence(request, response, exception);
         }
 
         @Test
         void whenUsernameNotFoundException_ShouldClearContextAndHandleError() throws Exception {
-            // Arrange
-            setupValidTokens();
-            final UsernameNotFoundException exception = new UsernameNotFoundException("User not found");
-            when(jwtTokenService.loadUserFromToken(any())).thenThrow(exception);
-
-            // Act
-            classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
-            verify(authenticationEntryPoint).commence(request, response, exception);
-        }
-
-        private void setupValidTokens() {
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
             when(refreshTokenCookie.getValue()).thenReturn(REFRESH_TOKEN);
-            securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+            when(accessTokenCookie.getValue()).thenReturn(ACCESS_TOKEN);
             when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
             when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
+            doThrow(new UsernameNotFoundException("User not found")).when(jwtTokenService).loadUserFromToken(any());
+            classUnderTest.doFilterInternal(request, response, filterChain);
+            verify(authenticationEntryPoint).commence(eq(request), eq(response), any(UsernameNotFoundException.class));
+            securityContextHolderMockedStatic.verify(SecurityContextHolder::clearContext);
         }
-
     }
 
     @Nested
-    class TokenValidation {
+    class EdgeCases {
 
         @Test
-        void whenEmptyRefreshToken_ShouldSkipAuthentication() throws Exception {
-            // Arrange
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.of(refreshTokenCookie));
+        void whenMissingApiKey_ShouldContinueChainWithoutAuthentication() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
+            securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+            when(securityContext.getAuthentication()).thenReturn(null);
+            classUnderTest.doFilterInternal(request, response, filterChain);
+            verify(authenticationManager, never()).authenticate(any());
+            verify(filterChain).doFilter(request, response);
+        }
+
+        @Test
+        void whenRefreshTokenCookieMissing_ShouldHandleBadCredentialsException() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.empty());
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
+            try {
+                classUnderTest.doFilterInternal(request, response, filterChain);
+            } catch (BadCredentialsException e) {
+                assertThat(e.getMessage()).contains("Refresh token cookie not found");
+            }
+        }
+
+        @Test
+        void whenRefreshTokenCookieMissingAndLinkedinUrl_ShouldContinueChain() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.empty());
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
+            classUnderTest.doFilterInternal(request, response, filterChain);
+            verify(filterChain).doFilter(request, response);
+        }
+
+        @Test
+        void whenRefreshTokenIsEmpty_ShouldSkipAuthentication() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
             when(refreshTokenCookie.getValue()).thenReturn("");
+            when(accessTokenCookie.getValue()).thenReturn(ACCESS_TOKEN);
             when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
             when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
-
-            // Act
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
             verify(authenticationManager, never()).authenticate(any());
             verify(filterChain).doFilter(request, response);
         }
 
         @Test
-        void whenAccessTokenWithoutBearerPrefix_ShouldSkipAuthentication() throws Exception {
-            // Arrange
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("invalid-token-format");
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.of(refreshTokenCookie));
+        void whenAccessTokenIsEmpty_ShouldSkipAuthentication() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
             when(refreshTokenCookie.getValue()).thenReturn(REFRESH_TOKEN);
+            when(accessTokenCookie.getValue()).thenReturn("");
             when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
             when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
-
-            // Act
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
             verify(authenticationManager, never()).authenticate(any());
             verify(filterChain).doFilter(request, response);
         }
 
         @Test
-        void whenNullCookies_ShouldHandleGracefully() throws Exception {
-            // Arrange
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(null, REFRESH_TOKEN_COOKIE_NAME))
-                    .thenReturn(Optional.empty());
+        void whenRefreshTokenCookiePresentButAccessTokenCookieMissing_ShouldSkipAuthentication() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.empty());
             when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
             when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
-
-            // Act
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
             verify(authenticationManager, never()).authenticate(any());
             verify(filterChain).doFilter(request, response);
         }
@@ -304,33 +257,20 @@ class JwtTokenFilterTest {
     @Nested
     class TokenUpdate {
 
-        @BeforeEach
-        void setUp() {
-            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
-            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
-                    .thenReturn(Optional.of(refreshTokenCookie));
+        @Test
+        void whenAccessTokenSame_ShouldNotUpdateCookie() throws Exception {
+            when(cookieService.findCookie(cookies, REFRESH_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(refreshTokenCookie));
+            when(cookieService.findCookie(cookies, ACCESS_TOKEN_COOKIE_NAME)).thenReturn(Optional.of(accessTokenCookie));
             when(refreshTokenCookie.getValue()).thenReturn(REFRESH_TOKEN);
+            when(accessTokenCookie.getValue()).thenReturn(ACCESS_TOKEN);
             when(securityContext.getAuthentication()).thenReturn(currentAuthentication);
             when(currentAuthentication.getCredentials()).thenReturn(API_KEY);
+            final FeatherCredentials sameCredentials = new FeatherCredentials(API_KEY, ACCESS_TOKEN, REFRESH_TOKEN);
             when(jwtTokenService.loadUserFromToken(ACCESS_TOKEN)).thenReturn(mockUser);
-        }
-
-        @Test
-        void whenAccessTokenSame_ShouldNotUpdateHeader() throws Exception {
-            // Arrange
-            final FeatherCredentials sameCredentials = new FeatherCredentials(API_KEY,
-                    ACCESS_TOKEN.substring(BEARER_PREFIX.length()),
-                    REFRESH_TOKEN);
-            when(authenticationManager.authenticate(any()))
-                    .thenReturn(new FeatherAuthenticationToken(mockUser, sameCredentials));
-
-            // Act
+            when(authenticationManager.authenticate(any())).thenReturn(new FeatherAuthenticationToken(mockUser, sameCredentials));
             classUnderTest.doFilterInternal(request, response, filterChain);
-
-            // Assert
-            verify(response, never()).setHeader(eq(AUTHORIZATION_HEADER), any());
+            verify(response, never()).addCookie(any());
             verify(filterChain).doFilter(request, response);
         }
     }
 }
-

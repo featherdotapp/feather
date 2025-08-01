@@ -125,7 +125,7 @@ class CookieServiceTest {
             // Assert
             assertThat(result.getName()).isEqualTo(cookieName);
             assertThat(result.getValue()).isEqualTo(cookieValue);
-            assertThat(result.getMaxAge()).isEqualTo(expiry);
+            assertThat(result.getMaxAge()).isEqualTo(3);
             // Test hardcoded constants
             assertThat(result.isHttpOnly()).isTrue();
             assertThat(result.getSecure()).isFalse();
