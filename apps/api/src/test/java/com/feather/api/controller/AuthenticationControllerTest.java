@@ -54,10 +54,10 @@ class AuthenticationControllerTest {
         when(oAuth2Provider.getLinkedinScope()).thenReturn(SCOPE);
 
         // Act
-        final String result = classUnderTest.linkedinLoginUrl();
+        final ResponseEntity<String> result = classUnderTest.linkedinLoginUrl();
 
         // Assert
-        assertThat(result).isEqualTo(EXPECTED_LOGIN_URL);
+        assertThat(result.getBody()).isEqualTo(EXPECTED_LOGIN_URL);
     }
 
     @Test

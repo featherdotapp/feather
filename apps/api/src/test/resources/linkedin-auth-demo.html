@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LinkedIn Auth Demo</title>
+    <link href="./linkedin-auth.css" rel="stylesheet">
+    <script type="module">
+        import {setupLinkedInAuthDemo} from './linkedin-auth.js';
+
+        window.onload = setupLinkedInAuthDemo;
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1>LinkedIn Authentication Demo</h1>
+    <button id="login-btn">
+        <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+            <rect fill="#fff" height="20" rx="4" width="20" x="2" y="2"/>
+            <path d="M6.94 8.5H4.5V19.5H6.94V8.5ZM5.72 7.5C6.44 7.5 7 6.94 7 6.22C7 5.5 6.44 4.94 5.72 4.94C5 4.94 4.44 5.5 4.44 6.22C4.44 6.94 5 7.5 5.72 7.5ZM19.5 13.5C19.5 10.74 17.76 9.5 15.94 9.5C14.5 9.5 13.94 10.28 13.5 10.94V8.5H11.06V19.5H13.5V14.5C13.5 13.5 14.5 12.5 15.5 12.5C16.5 12.5 16.5 13.5 16.5 14.5V19.5H19.5V13.5Z"
+                  fill="#0077b5"/>
+        </svg>
+        Login with LinkedIn
+    </button>
+    <button id="logout-btn">
+        <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 13v-2H7v2h9zm-4-9C6.48 4 2 8.48 2 14c0 5.52 4.48 10 10 10s10-4.48 10-10c0-5.52-4.48-10-10-10zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                  fill="#fff"/>
+            <circle cx="12" cy="14" fill="#e60023" r="3"/>
+        </svg>
+        Logout
+    </button>
+    <p>Status: <span id="auth-status">Checking...</span></p>
+</div>
+</body>
+</html>

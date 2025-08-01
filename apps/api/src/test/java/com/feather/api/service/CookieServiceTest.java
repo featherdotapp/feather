@@ -36,7 +36,7 @@ class CookieServiceTest {
         @Test
         void testCreateCookie_secureTrueWhenProdProfile() {
             // Act
-            final Cookie cookie = classUnderTest.createCookie("test", "val", 100);
+            final Cookie cookie = classUnderTest.createCookie("test", "val", "100");
             // Assert
             assertThat(cookie.getSecure()).isTrue();
         }
@@ -117,7 +117,7 @@ class CookieServiceTest {
             classUnderTest = new CookieService(environment);
             final String cookieName = "refreshToken";
             final String cookieValue = "jwt123token";
-            final int expiry = 3600;
+            final String expiry = "3600";
 
             // Act
             final Cookie result = classUnderTest.createCookie(cookieName, cookieValue, expiry);

@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -42,6 +43,7 @@ public class FeatherSecurityConfiguration {
     @Bean
     public SecurityFilterChain publicChain(final HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable) // disabled because of custom security
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher(endpointPaths.unauthenticatedPaths())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
@@ -61,6 +63,7 @@ public class FeatherSecurityConfiguration {
     @Bean
     public SecurityFilterChain apiKeyChain(final HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable) // disabled because of custom security
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher(endpointPaths.apiKeyAuthenticatedPaths())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
@@ -81,6 +84,7 @@ public class FeatherSecurityConfiguration {
     @Bean
     public SecurityFilterChain fullyAuthenticatedChain(final HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable) // disabled because of custom security
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .securityMatcher(endpointPaths.fullyAuthenticatedPaths())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->

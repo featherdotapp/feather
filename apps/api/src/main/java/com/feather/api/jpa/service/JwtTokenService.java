@@ -1,7 +1,5 @@
 package com.feather.api.jpa.service;
 
-import static com.feather.api.shared.AuthenticationConstants.BEARER_PREFIX;
-
 import com.feather.api.jpa.model.User;
 import com.feather.api.service.jwt.JwtTokenParser;
 import com.feather.api.shared.TokenType;
@@ -26,8 +24,7 @@ public class JwtTokenService {
      * @return the User implementation of UserDetails
      */
     public User loadUserFromToken(final String accessToken) throws UsernameNotFoundException {
-        final String token = accessToken.substring(BEARER_PREFIX.length());
-        final String userName = jwtTokenParser.extractSubject(token);
+        final String userName = jwtTokenParser.extractSubject(accessToken);
         return userService.getUserFromEmail(userName);
     }
 

@@ -13,8 +13,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,12 +39,12 @@ public class AuthenticationController {
      */
     @ApiKeyAuthenticated
     @GetMapping("/linkedin/loginUrl")
-    public String linkedinLoginUrl() {
-        return "https://www.linkedin.com/oauth/v2/authorization" +
+    public ResponseEntity<String> linkedinLoginUrl() {
+        return ResponseEntity.ok("https://www.linkedin.com/oauth/v2/authorization" +
                 "?response_type=code" +
                 "&client_id=" + oAuth2Provider.getLinkedinClientId() +
                 "&redirect_uri=" + oAuth2Provider.getLinkedinRedirectUri() +
-                "&scope=" + oAuth2Provider.getLinkedinScope();
+                "&scope=" + oAuth2Provider.getLinkedinScope());
     }
 
     /**
@@ -84,7 +84,7 @@ public class AuthenticationController {
      * @return ResponseEntity<Boolean> indicating whether the logout operation was successful
      */
     @FullyAuthenticated
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     public ResponseEntity<Boolean> logout() {
         final boolean loggedOut = authenticationService.logOut();
         return ResponseEntity.ok(loggedOut);

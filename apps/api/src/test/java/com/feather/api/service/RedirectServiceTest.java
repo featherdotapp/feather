@@ -23,7 +23,7 @@ class RedirectServiceTest {
 
     private static final String REFRESH_EXPIRATION_TIME = "604800000"; // 7 days in milliseconds
     private static final String FRONTEND_URL = "http://localhost:3000";
-    private static final int EXPECTED_EXPIRY = 604800; // 24 hours in seconds
+    private static final String EXPECTED_EXPIRY = "604800"; // 24 hours in seconds
 
     @Mock
     private CookieService cookieService;

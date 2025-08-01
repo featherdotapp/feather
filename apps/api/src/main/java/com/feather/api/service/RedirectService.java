@@ -21,6 +21,8 @@ public class RedirectService {
     private final CookieService cookieService;
     @Value("${security.jwt.refresh-expiration-time}")
     private String refreshExpirationTime;
+    @Value("${security.jwt.access-expiration-time}")
+    private String accessTokenExpirationTime;
     @Value("${frontend.url}")
     private String frontendUrl;
 
@@ -33,10 +35,13 @@ public class RedirectService {
      * @throws IOException if an input or output exception occurs during redirection
      */
     public void registerRedirect(final HttpServletResponse response, final JwtTokenCredentials tokens) throws IOException {
-        final int expiry = Integer.parseInt(refreshExpirationTime) / 1000;
-        final Cookie refreshTokenCookie = cookieService.createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, tokens.refreshToken(), expiry);
+        final Cookie refreshTokenCookie =
+                cookieService.createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, tokens.refreshToken(), refreshExpirationTime);
+        final Cookie accessTokenCookie =
+                cookieService.createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, tokens.accessToken(), accessTokenExpirationTime);
         response.addCookie(refreshTokenCookie);
-        response.setHeader(AuthenticationConstants.AUTHORIZATION_HEADER, "Bearer " + tokens.accessToken());
+        response.addCookie(accessTokenCookie);
         response.sendRedirect(frontendUrl);
     }
+
 }

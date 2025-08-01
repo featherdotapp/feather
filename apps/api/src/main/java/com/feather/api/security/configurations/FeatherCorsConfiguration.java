@@ -20,19 +20,14 @@ public class FeatherCorsConfiguration {
     @Value("${app.cors.allowed-origins:*}")
     private List<String> allowedOrigins;
 
-    /**
-     * Creates a CorsConfigurationSource for the development profile
-     *
-     * @return a CorsConfigurationSource with dev specific cors configuration
-     */
     @Bean
     @Primary
     @Profile("dev")
     public CorsConfigurationSource devCorsConfigurationSource() {
         final CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*"); // allows all origins
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
+        config.setAllowedOrigins(List.of("http://localhost:63342", "http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         return provideConfigurationSource(config);
     }

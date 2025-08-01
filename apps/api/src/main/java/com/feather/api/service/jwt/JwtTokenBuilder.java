@@ -29,7 +29,7 @@ public class JwtTokenBuilder {
     private String secretKey;
 
     @Getter
-    @Value("${security.jwt.acess-expiration-time}")
+    @Value("${security.jwt.access-expiration-time}")
     private long accessTokenExpiration;
 
     @Getter

@@ -58,12 +58,13 @@ public class CookieService {
      * @param expiry the expiration time of the cookie in seconds
      * @return the created Cookie object
      */
-    public Cookie createCookie(final String cookieName, final String cookieValue, final int expiry) {
+    public Cookie createCookie(final String cookieName, final String cookieValue, final String expiry) {
+        final int expiryRefreshToken = Integer.parseInt(expiry) / 1000;
         final Cookie refreshTokenCookie = new Cookie(cookieName, cookieValue);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(secureCookies);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(expiry);
+        refreshTokenCookie.setMaxAge(expiryRefreshToken);
         return refreshTokenCookie;
     }
 

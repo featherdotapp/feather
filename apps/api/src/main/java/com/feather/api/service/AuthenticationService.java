@@ -77,6 +77,7 @@ public class AuthenticationService {
         final String emptyString = "";
         userService.updateUserToken(user, emptyString, ACCESS_TOKEN);
         userService.updateUserToken(user, emptyString, REFRESH_TOKEN);
+        SecurityContextHolder.clearContext();
         return true;
     }
 }

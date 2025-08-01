@@ -1,7 +1,6 @@
 package com.feather.api.security.filters;
 
-import static com.feather.api.shared.AuthenticationConstants.AUTHORIZATION_HEADER;
-import static com.feather.api.shared.AuthenticationConstants.BEARER_PREFIX;
+import static com.feather.api.shared.AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME;
 import static com.feather.api.shared.AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME;
 
 import java.io.IOException;
@@ -20,8 +19,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -43,10 +44,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final CookieService cookieService;
     private final JwtTokenService jwtTokenService;
     private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
-
-    private static boolean hasBearerPrefix(final String token) {
-        return token.startsWith(BEARER_PREFIX);
-    }
+    @Value("${security.jwt.access-expiration-time}")
+    private String accessTokenExpirationTime;
 
     /**
      * Performs JWT authentication for each request.
@@ -61,17 +60,24 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull final HttpServletRequest request, @NonNull final HttpServletResponse response,
             @NonNull final FilterChain filterChain)
             throws ServletException, IOException {
-        final String accessToken = request.getHeader(AUTHORIZATION_HEADER);
-        final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
-        final String apiKey = getApiKey();
         try {
-            if (refreshTokenCookie.isPresent() && accessToken != null && !apiKey.isEmpty()) {
+            final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
+            final Optional<Cookie> accessTokenCookie = cookieService.findCookie(request.getCookies(), ACCESS_TOKEN_COOKIE_NAME);
+            final String apiKey = getApiKey();
+            if (refreshTokenCookie.isPresent() && accessTokenCookie.isPresent() && !apiKey.isEmpty()) {
                 final String refreshToken = refreshTokenCookie.get().getValue();
-                if (!refreshToken.isEmpty() && hasBearerPrefix(accessToken)) {
+                final String accessToken = accessTokenCookie.get().getValue();
+                if (!refreshToken.isEmpty() && !accessToken.isEmpty()) {
                     handleAuthentication(response, apiKey, accessToken, refreshToken);
                 }
             }
             filterChain.doFilter(request, response);
+        } catch (final BadCredentialsException e) {
+            if (request.getRequestURI().equals("/auth/linkedin/loginUrl")) {
+                filterChain.doFilter(request, response);
+            } else {
+                throw new BadCredentialsException("Refresh token cookie not found: " + e.getMessage());
+            }
         } catch (final JwtAuthenticationException | UsernameNotFoundException e) {
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response, e);
@@ -80,7 +86,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private void handleAuthentication(final HttpServletResponse response, final String apiKey, final String accessToken, final String refreshToken) {
         final User user = jwtTokenService.loadUserFromToken(accessToken);
-        final FeatherCredentials newCredentials = new FeatherCredentials(apiKey, accessToken.substring(7), refreshToken);
+        final FeatherCredentials newCredentials = new FeatherCredentials(apiKey, accessToken, refreshToken);
         final Authentication authentication = new FeatherAuthenticationToken(user, newCredentials);
         final Authentication currentAuthentication = authenticationManager.authenticate(authentication);
         SecurityContextHolder.getContext().setAuthentication(currentAuthentication);
@@ -101,7 +107,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             final FeatherCredentials updatedCredentials) {
         final boolean accessTokenUnchanged = credentials.accessToken().equals(updatedCredentials.accessToken());
         if (!accessTokenUnchanged) {
-            response.setHeader(AUTHORIZATION_HEADER, updatedCredentials.accessToken());
+            final Cookie cookie = cookieService.createCookie(ACCESS_TOKEN_COOKIE_NAME, updatedCredentials.accessToken(), accessTokenExpirationTime);
+            response.addCookie(cookie);
         }
     }
 
