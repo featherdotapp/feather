@@ -7,6 +7,7 @@ package "Security Configuration" {
         + passwordEncoder(): PasswordEncoder
     }
 
+
     class FeatherCorsConfiguration {
         + getCorsConfiguration(): CorsConfiguration
     }
@@ -18,6 +19,8 @@ package "Security Configuration" {
     class FeatherOAuth2Configuration {
         + clientRegistrations(): List<ClientRegistration>
     }
+
+    FeatherSecurityConfiguration -d[#white]- FeatherCorsConfiguration
 }
 
 package "Authentication" {
@@ -135,6 +138,7 @@ package "Exception Handling" {
 
     ApiKeyAuthenticationException --|> AuthenticationException
     JwtAuthenticationException --|> AuthenticationException
+
 }
 
 package "OAuth2" {
@@ -144,6 +148,34 @@ package "OAuth2" {
         + getRegistrationId(): String
     }
 }
+
+'== Annotation-based Security ==
+    package "Security Annotations" {
+        annotation Unauthenticated
+        annotation FullyAuthenticated
+        annotation ApiKeyAuthenticated
+    }
+
+    package "Endpoint Path Scanning" {
+        class FeatherSecurityEndpointPathConfiguration {
+            + applicationPaths(): EndpointPaths
+        }
+        class EndpointPaths {
+            + fullyAuthenticatedPaths: String[]
+            + apiKeyAuthenticatedPaths: String[]
+            + unauthenticatedPaths: String[]
+        }
+        class PathResolver {
+            + resolvePath(Method, Class): String
+        }
+        FeatherSecurityEndpointPathConfiguration --> EndpointPaths
+        FeatherSecurityEndpointPathConfiguration --> PathResolver
+    }
+
+    EndpointPaths --> Unauthenticated : unauthenticatedPaths
+    EndpointPaths --> FullyAuthenticated : fullyAuthenticatedPaths
+    EndpointPaths --> ApiKeyAuthenticated : apiKeyAuthenticatedPaths
+'--
 
 ' Relationships
 FeatherSecurityConfiguration --> ApiKeyFilter
@@ -159,6 +191,9 @@ JwtTokenFilter --> JwtTokenAuthenticationProvider
 
 FeatherAuthenticationToken --> FeatherCredentials
 
+FeatherManagerConfiguration -[#white]- FeatherOAuth2Configuration
+FeatherSecurityConfiguration -u-> EndpointPaths: uses
+AuthenticationProvider --> FeatherAuthenticationToken : provides
 hide empty members
 
 @enduml
