@@ -187,6 +187,22 @@ class JwtTokenFilterTest {
         }
 
         @Test
+        void whenMissingApiKey_ShouldContinueChainWithoutAuthentication() throws Exception {
+            // Arrange
+            when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(ACCESS_TOKEN);
+            when(cookieService.findCookie(any(), eq(REFRESH_TOKEN_COOKIE_NAME)))
+                    .thenReturn(Optional.of(refreshTokenCookie));
+            securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            // Act
+            classUnderTest.doFilterInternal(request, response, filterChain);
+
+            // Assert
+            verify(authenticationManager, never()).authenticate(any());
+            verify(filterChain).doFilter(request, response);
+        }
+
+        @Test
         void whenJwtAuthenticationException_ShouldClearContextAndHandleError() throws Exception {
             // Arrange
             setupValidTokens();

@@ -65,7 +65,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final Optional<Cookie> refreshTokenCookie = cookieService.findCookie(request.getCookies(), REFRESH_TOKEN_COOKIE_NAME);
         final String apiKey = getApiKey();
         try {
-            if (refreshTokenCookie.isPresent() && accessToken != null) {
+            if (refreshTokenCookie.isPresent() && accessToken != null && !apiKey.isEmpty()) {
                 final String refreshToken = refreshTokenCookie.get().getValue();
                 if (!refreshToken.isEmpty() && hasBearerPrefix(accessToken)) {
                     handleAuthentication(response, apiKey, accessToken, refreshToken);
@@ -91,7 +91,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @NonNull
     private String getApiKey() {
         final Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        return currentAuth.getCredentials().toString();
+        if (currentAuth != null) {
+            return currentAuth.getCredentials().toString();
+        }
+        return "";
     }
 
     private void sendAccessTokenInResponseIfUpdated(final HttpServletResponse response, final FeatherCredentials credentials,
