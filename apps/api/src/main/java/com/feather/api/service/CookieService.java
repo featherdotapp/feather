@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import jakarta.servlet.http.Cookie;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,26 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CookieService {
+
+    private final boolean secureCookies;
+
+    /**
+     * Constructs a CookieService and determines if cookies should be secure based on the active Spring profile.
+     *
+     * @param environment the Spring Environment used to check active profiles
+     * (if 'dev' is active, cookies are not secure; otherwise, cookies are secure)
+     */
+    public CookieService(final Environment environment) {
+        final String[] profiles = environment.getActiveProfiles();
+        boolean isDev = false;
+        for (final String profile : profiles) {
+            if ("dev".equalsIgnoreCase(profile)) {
+                isDev = true;
+                break;
+            }
+        }
+        this.secureCookies = !isDev;
+    }
 
     /**
      * Finds a cookie with the specified name in an array of cookies.
@@ -40,7 +61,7 @@ public class CookieService {
     public Cookie createCookie(final String cookieName, final String cookieValue, final int expiry) {
         final Cookie refreshTokenCookie = new Cookie(cookieName, cookieValue);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setSecure(secureCookies);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(expiry);
         return refreshTokenCookie;

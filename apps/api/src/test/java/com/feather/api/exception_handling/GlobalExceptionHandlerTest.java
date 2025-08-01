@@ -37,11 +37,14 @@ class GlobalExceptionHandlerTest {
         // Arrange
         final String errorMessage = "Authentication failed";
         final String clientIp = "192.168.1.1";
+        final String requestUri = "/api";
+        final String distinct = clientIp + "|" + requestUri;
         final AuthenticationException exception = new AuthenticationException(errorMessage) {
 
         };
 
         when(request.getRemoteAddr()).thenReturn(clientIp);
+        when(request.getRequestURI()).thenReturn(requestUri);
 
         // Act
         final ResponseEntity<String> response = classUnderTest.handleUserNotFoundException(exception, request);
@@ -49,7 +52,7 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertEquals(errorMessage, response.getBody());
-        verify(postHogService).trackEvent(eq(clientIp), eq("authentication_exception"), any(Map.class));
+        verify(postHogService).trackEvent(eq(distinct), eq("authentication_exception"), any(Map.class));
         verify(request).getRemoteAddr();
     }
 
@@ -58,9 +61,12 @@ class GlobalExceptionHandlerTest {
         // Arrange
         final String errorMessage = "Connection timeout";
         final String clientIp = "192.168.1.100";
+        final String requestUri = "/api";
+        final String distinct = clientIp + "|" + requestUri;
         final RestClientException exception = new RestClientException(errorMessage);
 
         when(request.getRemoteAddr()).thenReturn(clientIp);
+        when(request.getRequestURI()).thenReturn(requestUri);
 
         // Act
         final ResponseEntity<String> response = classUnderTest.handleRestClientException(exception, request);
@@ -68,7 +74,7 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
         assertEquals("Error communicating with external service: " + errorMessage, response.getBody());
-        verify(postHogService).trackEvent(eq(clientIp), eq("rest_client_exception"), any(Map.class));
+        verify(postHogService).trackEvent(eq(distinct), eq("rest_client_exception"), any(Map.class));
         verify(request).getRemoteAddr();
     }
 }

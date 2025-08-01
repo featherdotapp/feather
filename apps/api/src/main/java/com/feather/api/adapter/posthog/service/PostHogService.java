@@ -25,7 +25,6 @@ public class PostHogService {
      * @param properties a {@link Map} containing metadata about the event
      */
     public void trackEvent(final String distinctId, final String event, final Map<String, Object> properties) {
-        // TODO: check distinctId
         final PostHog postHog = postHogBuilder.buildPostHog();
         postHog.capture(distinctId, event, properties);
         postHog.shutdown();
