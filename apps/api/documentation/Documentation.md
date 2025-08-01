@@ -108,8 +108,9 @@ To add new endpoints to the Feather application
      ```
 
     ```
-    When creating a new endpointt, do not add the request parameter in the Mapping annotation, it could lead to problems with the Custom Annotation 
-   Authentication. Instead use @RequestParameter in the parameters of the method.
+    When creating a new endpointt, do not add the request parameter in the Mapping annotation, it could lead to problems with the Custom Authentication 
+   Annotation. Instead use @RequestParameter in the parameters of the method. The path variable is resolved by the annotations adding to the security 
+   matchers the path with a /** matcher at the end, but this could lead to problems when adding similar paths.
     ```
 
 ## JWT Token Management

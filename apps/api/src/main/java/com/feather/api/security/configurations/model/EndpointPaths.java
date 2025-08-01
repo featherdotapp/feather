@@ -19,13 +19,18 @@ public record EndpointPaths(String[] fullyAuthenticatedPaths, String[] apiKeyAut
             return false;
         }
         final EndpointPaths that = (EndpointPaths) o;
-        return Objects.deepEquals(unauthenticatedPaths, that.unauthenticatedPaths) && Objects.deepEquals(fullyAuthenticatedPaths,
-                that.fullyAuthenticatedPaths) && Objects.deepEquals(apiKeyAuthenticatedPaths, that.apiKeyAuthenticatedPaths);
+        return Objects.deepEquals(unauthenticatedPaths, that.unauthenticatedPaths) &&
+                Objects.deepEquals(fullyAuthenticatedPaths, that.fullyAuthenticatedPaths) &&
+                Objects.deepEquals(apiKeyAuthenticatedPaths, that.apiKeyAuthenticatedPaths);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(Arrays.hashCode(fullyAuthenticatedPaths), Arrays.hashCode(apiKeyAuthenticatedPaths), Arrays.hashCode(unauthenticatedPaths));
+        return Objects.hash(
+                Arrays.hashCode(fullyAuthenticatedPaths),
+                Arrays.hashCode(apiKeyAuthenticatedPaths),
+                Arrays.hashCode(unauthenticatedPaths)
+        );
     }
 
     @Override
