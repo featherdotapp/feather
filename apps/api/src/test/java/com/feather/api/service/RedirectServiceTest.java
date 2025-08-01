@@ -21,9 +21,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class RedirectServiceTest {
 
-    private static final String REFRESH_EXPIRATION_TIME = "604800"; // 7 days in milliseconds
+    private static final String REFRESH_EXPIRATION_TIME = "604800";
+    private static final String ACCESS_EXPIRATION_TIME = "3600";
     private static final String FRONTEND_URL = "http://localhost:3000";
-    private static final String EXPECTED_EXPIRY = "604800"; // 24 hours in seconds
+    private static final String EXPECTED_EXPIRY = "604800";
 
     @Mock
     private CookieService cookieService;
@@ -35,62 +36,56 @@ class RedirectServiceTest {
 
     @Test
     void testRegisterRedirect() throws IOException {
-        // Arrange
         final String accessToken = "test-access-token";
         final String refreshToken = "test-refresh-token";
 
         final JwtTokenCredentials tokens = new JwtTokenCredentials(accessToken, refreshToken);
-        final Cookie mockRefreshCookie = new Cookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-        final Cookie mockAccessCookie = new Cookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken);
+        final Cookie refreshCookie = new Cookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+        final Cookie accessCookie = new Cookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken);
 
         ReflectionTestUtils.setField(classUnderTest, "refreshExpirationTime", REFRESH_EXPIRATION_TIME);
-        ReflectionTestUtils.setField(classUnderTest, "accessTokenExpirationTime", EXPECTED_EXPIRY);
+        ReflectionTestUtils.setField(classUnderTest, "accessTokenExpirationTime", ACCESS_EXPIRATION_TIME);
         ReflectionTestUtils.setField(classUnderTest, "frontendUrl", FRONTEND_URL);
 
-        when(cookieService.createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_EXPIRATION_TIME))
-                .thenReturn(mockRefreshCookie);
-        when(cookieService.createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, EXPECTED_EXPIRY))
-                .thenReturn(mockAccessCookie);
+        when(cookieService.createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, EXPECTED_EXPIRY))
+                .thenReturn(refreshCookie);
+        when(cookieService.createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, ACCESS_EXPIRATION_TIME))
+                .thenReturn(accessCookie);
 
-        // Act
         classUnderTest.registerRedirect(response, tokens);
 
-        // Assert
-        verify(cookieService).createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_EXPIRATION_TIME);
-        verify(cookieService).createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, EXPECTED_EXPIRY);
-        verify(response).addCookie(mockRefreshCookie);
-        verify(response).addCookie(mockAccessCookie);
+        verify(cookieService).createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, EXPECTED_EXPIRY);
+        verify(cookieService).createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, ACCESS_EXPIRATION_TIME);
+        verify(response).addCookie(refreshCookie);
+        verify(response).addCookie(accessCookie);
         verify(response).sendRedirect(FRONTEND_URL);
     }
 
     @Test
     void testRegisterRedirect_withIOException() throws IOException {
-        // Arrange
         final String accessToken = "test-access-token";
         final String refreshToken = "test-refresh-token";
 
         final JwtTokenCredentials tokens = new JwtTokenCredentials(accessToken, refreshToken);
-        final Cookie mockRefreshCookie = new Cookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-        final Cookie mockAccessCookie = new Cookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken);
+        final Cookie refreshCookie = new Cookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+        final Cookie accessCookie = new Cookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken);
 
         ReflectionTestUtils.setField(classUnderTest, "refreshExpirationTime", REFRESH_EXPIRATION_TIME);
-        ReflectionTestUtils.setField(classUnderTest, "accessTokenExpirationTime", EXPECTED_EXPIRY);
+        ReflectionTestUtils.setField(classUnderTest, "accessTokenExpirationTime", ACCESS_EXPIRATION_TIME);
         ReflectionTestUtils.setField(classUnderTest, "frontendUrl", FRONTEND_URL);
 
-        when(cookieService.createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_EXPIRATION_TIME))
-                .thenReturn(mockRefreshCookie);
-        when(cookieService.createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, EXPECTED_EXPIRY))
-                .thenReturn(mockAccessCookie);
+        when(cookieService.createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, EXPECTED_EXPIRY))
+                .thenReturn(refreshCookie);
+        when(cookieService.createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, ACCESS_EXPIRATION_TIME))
+                .thenReturn(accessCookie);
         doThrow(new IOException("Redirect failed")).when(response).sendRedirect(FRONTEND_URL);
 
-        // Act & Assert
         assertThrows(IOException.class, () -> classUnderTest.registerRedirect(response, tokens));
 
-        // Verify that cookies were still set before the exception
-        verify(cookieService).createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_EXPIRATION_TIME);
-        verify(cookieService).createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, EXPECTED_EXPIRY);
-        verify(response).addCookie(mockRefreshCookie);
-        verify(response).addCookie(mockAccessCookie);
+        verify(cookieService).createCookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, EXPECTED_EXPIRY);
+        verify(cookieService).createCookie(AuthenticationConstants.ACCESS_TOKEN_COOKIE_NAME, accessToken, ACCESS_EXPIRATION_TIME);
+        verify(response).addCookie(refreshCookie);
+        verify(response).addCookie(accessCookie);
         verify(response).sendRedirect(FRONTEND_URL);
     }
 
