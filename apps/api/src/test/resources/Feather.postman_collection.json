@@ -1,0 +1,161 @@
+{
+	"info": {
+		"_postman_id": "c912686b-213b-4254-8e66-6d88fe45a0ab",
+		"name": "Feather",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43244241"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Get LinkedIn oauth url",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "7e2b4c8f1a3d4e5f9b6c2a1e8d7f0b3",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/auth/linkedin/loginUrl",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"linkedin",
+								"loginUrl"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Linkedin login",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=77aqk5dtm1khzu&redirect_uri=http://localhost:8080/auth/linkedin/callback&scope=openid,profile,email",
+							"protocol": "https",
+							"host": [
+								"www",
+								"linkedin",
+								"com"
+							],
+							"path": [
+								"oauth",
+								"v2",
+								"authorization"
+							],
+							"query": [
+								{
+									"key": "response_type",
+									"value": "code"
+								},
+								{
+									"key": "client_id",
+									"value": "77aqk5dtm1khzu"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "http://localhost:8080/auth/linkedin/callback"
+								},
+								{
+									"key": "scope",
+									"value": "openid,profile,email"
+								}
+							]
+						},
+						"description": "This LinkedIn URL calls the LinkedIn login, when successfully done, it will redirect to the LinkedIn callback URL. Check the `Is Authenticated` Get Request documentation to properly log in per Postman."
+					},
+					"response": []
+				},
+				{
+					"name": "Is Authenticated",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJERUZBVUxUX1VTRVIiXSwic3ViIjoiYWRyaWFuLmJhdGlzdGFiZXJpbmdlckBnbWFpbC5jb20iLCJpYXQiOjE3NTMzNDc4ODAsImV4cCI6MTc1MzUyMDY4MH0.UEtHyktk5Hocaiq4vlkeIiNBinQSwKJpE7uwurob_gY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "7e2b4c8f1a3d4e5f9b6c2a1e8d7f0b3",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/auth/isAuthenticated",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"isAuthenticated"
+							]
+						},
+						"description": "# LinkedIn Register/Login Test Instructions\n\n## Steps to Test LinkedIn Register/Login\n\n1. **Set the App Profile to \"dev\"**\n    \n    Ensure the profile is set to `dev` in your `application.properties` file so the `/isAuthenticated` endpoint is available.\n    \n2. **Adjust Token Lifetimes**\n    \n    You can change the lifetime of both tokens in the `application.properties` file for testing purposes.\n    \n3. **Rebuild and Restart the App**\n    \n    After making changes, rebuild and restart the application to apply the updates.\n    \n4. Perform Linkedin Login\n    \n    Open the following URL in your browser to initiate LinkedIn login:  \n    **LinkedIn login**\n    \n    Upon successful login, you have to follow the following steps:\n    \n    1. Open the dev-tools of your browser\n        \n    2. Search for the Application tab and open it\n        \n    3. Press Cookies to open the stored Cookies\n        \n    4. Search the Refresh-Token Cookie and copy the value\n        \n5. **Use Tokens in Postman**\n    \n    1. Add the Value of the Refresh-Token Cookie to the Postman Cookies (under the localhost domain)\n        \n6. You can also authenticate using only the `refresh_token`. With a valid `refresh_token`, a new `access_token` is generated. If you do not add the  \n    `refresh_token` to the cookies, the endpoint will not be available.\n    \n    After these steps, you are fully authenticated. The `/isAuthenticated` endpoint should return `true`."
+					},
+					"response": []
+				},
+				{
+					"name": "LogOut",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJERUZBVUxUX1VTRVIiXSwic3ViIjoiYWRyaWFuLmJhdGlzdGFiZXJpbmdlckBnbWFpbC5jb20iLCJpYXQiOjE3NTMzNDc4ODAsImV4cCI6MTc1MzUyMDY4MH0.UEtHyktk5Hocaiq4vlkeIiNBinQSwKJpE7uwurob_gY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "7e2b4c8f1a3d4e5f9b6c2a1e8d7f0b3",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/auth/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "- The requiered authentication for this enpdoint is the JWT-Tokens and the Api-Key. If you are not authenticated in our app, make sure that you followed the documentation of the IsAuthenticated endpoint."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Posthog",
+			"item": []
+		}
+	]
+}
