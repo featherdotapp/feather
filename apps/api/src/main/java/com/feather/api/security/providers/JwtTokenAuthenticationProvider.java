@@ -35,8 +35,8 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         final String accessToken = credentials.accessToken();
         final String refreshToken = credentials.refreshToken();
         final User user = (User) authentication.getPrincipal();
-        tokenRefresher.refreshTokens(accessToken, refreshToken, user);
-        return authenticationTokenFactory.buildAuthenticationToken(user);
+        final User updatedUser = tokenRefresher.refreshTokens(accessToken, refreshToken, user);
+        return authenticationTokenFactory.buildAuthenticationToken(updatedUser);
     }
 
     /**

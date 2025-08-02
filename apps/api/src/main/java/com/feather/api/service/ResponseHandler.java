@@ -39,8 +39,8 @@ public class ResponseHandler {
     /**
      * Adds updated access and/or refresh token cookies to the response if they have changed.
      *
-     * @param response          the HTTP response to modify
-     * @param credentials       the original token credentials
+     * @param response the HTTP response to modify
+     * @param credentials the original token credentials
      * @param updatedCredentials the updated token credentials to compare against
      */
     public void updateTokenCookiesIfChanged(final HttpServletResponse response, final FeatherCredentials credentials,
@@ -56,9 +56,9 @@ public class ResponseHandler {
     /**
      * Handles authentication failure by clearing the security context and delegating to the authentication entry point.
      *
-     * @param request   the HTTP request
-     * @param response  the HTTP response
-     * @param e         the authentication exception that caused the failure
+     * @param request the HTTP request
+     * @param response the HTTP response
+     * @param e the authentication exception that caused the failure
      * @throws IOException if an I/O error occurs during handling
      */
     public void handleFailureResponse(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException e)

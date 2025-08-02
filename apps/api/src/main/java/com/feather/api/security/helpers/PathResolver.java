@@ -1,13 +1,17 @@
 package com.feather.api.security.helpers;
 
-import com.feather.api.security.exception_handling.exception.PathResolutionException;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.*;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+
+import com.feather.api.security.exception_handling.exception.PathResolutionException;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Utility class for resolving endpoint paths and class-level request mappings in Spring controllers.
@@ -30,7 +34,7 @@ public class PathResolver {
      * Resolves the full path for a given method, including any class-level request mapping.
      *
      * @param method the method for which to resolve the path
-     * @param clazz  the class containing the method
+     * @param clazz the class containing the method
      * @return the resolved path as a String
      */
     public String resolvePath(final Method method, final Class<?> clazz) {
@@ -42,11 +46,11 @@ public class PathResolver {
             }
         }
         throw new PathResolutionException(PathResolutionException.ErrorType.NO_VALID_MAPPING,
-            method.getName(), PATH_ANNOTATIONS);
+                method.getName(), PATH_ANNOTATIONS);
     }
 
     private String resolveMethodPath(final Method method, final Class<? extends Annotation> mappingType,
-                                     final Annotation methodAnnotation, final StringBuilder classRequestMapping) {
+            final Annotation methodAnnotation, final StringBuilder classRequestMapping) {
         final String methodName = method.getName();
         final String annotationName = mappingType.getSimpleName();
         try {

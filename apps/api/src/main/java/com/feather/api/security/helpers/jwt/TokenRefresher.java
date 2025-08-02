@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 /**
  * Component responsible for refreshing JWT access and refresh tokens when they are close to expiring.
  */
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class TokenRefresher {
 
     private final UserService userService;
@@ -23,11 +23,11 @@ public class TokenRefresher {
     /**
      * Refreshes the access and/or refresh token for the given user if either is nearing expiration.
      *
-     * @param accessToken  the current access token
+     * @param accessToken the current access token
      * @param refreshToken the current refresh token
-     * @param user         the associated user
+     * @param user the associated user
      */
-    public void refreshTokens(final String accessToken, final String refreshToken, final User user) {
+    public User refreshTokens(final String accessToken, final String refreshToken, final User user) {
         if (jwtTokenValidator.shouldUpdateAccessToken(accessToken, refreshToken, user)) {
             final String newAccessToken = jwtTokenBuilder.buildToken(user, ACCESS_TOKEN);
             userService.updateUserToken(user, newAccessToken, ACCESS_TOKEN);
@@ -36,5 +36,6 @@ public class TokenRefresher {
             final String newRefreshToken = jwtTokenBuilder.buildToken(user, REFRESH_TOKEN);
             userService.updateUserToken(user, newRefreshToken, REFRESH_TOKEN);
         }
+        return userService.getUserFromEmail(user.getEmail());
     }
 }
