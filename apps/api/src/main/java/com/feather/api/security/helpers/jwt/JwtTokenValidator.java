@@ -1,18 +1,19 @@
-package com.feather.api.security.helpers;
+package com.feather.api.security.helpers.jwt;
 
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.EXPIRED_REFRESH_TOKEN;
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.INVALID_ACCESS_TOKEN;
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.INVALID_REFRESH_TOKEN;
+import static com.feather.api.shared.TokenType.REFRESH_TOKEN;
 
 import java.util.Date;
 import java.util.Objects;
 
 import com.feather.api.jpa.model.User;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
-import com.feather.api.service.jwt.JwtTokenBuilder;
 import com.feather.api.service.jwt.JwtTokenParser;
 import com.feather.api.shared.TokenType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -35,31 +36,31 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JwtTokenValidator {
 
-    private final JwtTokenBuilder jwtTokenBuilder;
+    @Value("${security.jwt.min-remaining-time-for-refresh-refresh-token}")
+    private String minRemainingTimeForRefreshRefreshToken;
+
     private final JwtTokenParser jwtTokenParser;
 
     /**
-     * Validates the access token and refreshes it if expired, and the refresh token is valid.
+     * Validates if the access token should be updated
      * Throws JwtAuthenticationException if any token is invalid or if the refresh token is expired
      *
      * @param accessToken The access token.
      * @param refreshToken The refresh token.
      * @param user The user.
-     * @return A valid access token (new or existing).
+     * @return true if the token should be updated, false otherwise
+     * @throws JwtAuthenticationException if any token is expired or invalid
      */
-    public String validateOrRefreshAccessToken(final String accessToken, final String refreshToken, final User user) throws JwtAuthenticationException {
-        validateTokensOrThrow(accessToken, refreshToken, user);
+    protected boolean shouldUpdateAccessToken(final String accessToken, final String refreshToken, final User user) {
+        assertTokenBelongsToUserOrThrow(accessToken, refreshToken, user);
         if (isTokenExpired(refreshToken)) {
             throw new JwtAuthenticationException(EXPIRED_REFRESH_TOKEN);
         }
-        if (!isTokenExpired(accessToken)) {
-            return accessToken;
-        }
-        return jwtTokenBuilder.buildToken(user, TokenType.ACCESS_TOKEN);
+        return isTokenExpired(accessToken);
     }
 
-    private void validateTokensOrThrow(final String accessToken, final String refreshToken, final User user) throws JwtAuthenticationException {
-        if (isJwtTokenInvalid(refreshToken, user, TokenType.REFRESH_TOKEN)) {
+    private void assertTokenBelongsToUserOrThrow(final String accessToken, final String refreshToken, final User user) throws JwtAuthenticationException {
+        if (isJwtTokenInvalid(refreshToken, user, REFRESH_TOKEN)) {
             throw new JwtAuthenticationException(INVALID_REFRESH_TOKEN);
         }
         if (isJwtTokenInvalid(accessToken, user, TokenType.ACCESS_TOKEN)) {
@@ -82,5 +83,30 @@ public class JwtTokenValidator {
     private boolean isTokenExpired(final String token) {
         final Date expiration = jwtTokenParser.extractExpirationDate(token);
         return expiration.before(new Date());
+    }
+
+    /**
+     * Determines whether a refresh token should be proactively updated based on its remaining validity period.
+     * <p>
+     * According to the application workflow, if execution reaches this method, the refresh token is assumed to be
+     * structurally valid and associated with the current user. Therefore, only expiration-related checks are performed.
+     * <p>
+     *
+     * @param refreshToken the refresh token to evaluate
+     * @return {@code true} if the token is valid but nearing expiration and should be refreshed; {@code false} otherwise
+     * @throws JwtAuthenticationException if the token is already expired
+     */
+    protected boolean shouldUpdateRefreshToken(final String refreshToken) {
+        if (isTokenExpired(refreshToken)) {
+            throw new JwtAuthenticationException(EXPIRED_REFRESH_TOKEN);
+        }
+        return isTokenExpiringSoon(refreshToken);
+    }
+
+    private boolean isTokenExpiringSoon(final String refreshToken) {
+        final long minTimeToRefresh = Long.parseLong(minRemainingTimeForRefreshRefreshToken);
+        final Date expiration = jwtTokenParser.extractExpirationDate(refreshToken);
+        final long timeLeft = expiration.getTime() - System.currentTimeMillis();
+        return timeLeft < minTimeToRefresh;
     }
 }

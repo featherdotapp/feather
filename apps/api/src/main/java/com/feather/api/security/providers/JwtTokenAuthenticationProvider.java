@@ -1,13 +1,8 @@
 package com.feather.api.security.providers;
 
-import static com.feather.api.shared.TokenType.ACCESS_TOKEN;
-
-import java.util.Objects;
-
 import com.feather.api.jpa.model.User;
-import com.feather.api.jpa.service.UserService;
 import com.feather.api.security.helpers.AuthenticationTokenFactory;
-import com.feather.api.security.helpers.JwtTokenValidator;
+import com.feather.api.security.helpers.jwt.TokenRefresher;
 import com.feather.api.security.tokens.FeatherAuthenticationToken;
 import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +19,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
-    private final JwtTokenValidator jwtTokenValidator;
-    private final UserService userService;
     private final AuthenticationTokenFactory authenticationTokenFactory;
+    private final TokenRefresher tokenRefresher;
 
     /**
      * Authenticates the JWT token by validating it and loading the user.
@@ -41,11 +35,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         final String accessToken = credentials.accessToken();
         final String refreshToken = credentials.refreshToken();
         final User user = (User) authentication.getPrincipal();
-        final String validAccessToken = jwtTokenValidator.validateOrRefreshAccessToken(accessToken, refreshToken, user);
-        if (!Objects.equals(validAccessToken, accessToken)) {
-            userService.updateUserToken(user, validAccessToken, ACCESS_TOKEN);
-        }
-        return authenticationTokenFactory.buildAuthenticationToken(validAccessToken, refreshToken, user);
+        tokenRefresher.refreshTokens(accessToken, refreshToken, user);
+        // TODO: check if the user is updated or if it should be re-retrieved
+        return authenticationTokenFactory.buildAuthenticationToken(user);
     }
 
     /**

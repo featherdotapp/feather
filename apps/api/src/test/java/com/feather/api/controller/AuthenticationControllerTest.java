@@ -9,7 +9,7 @@ import java.io.IOException;
 import com.feather.api.security.oauth2.OAuth2Provider;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
 import com.feather.api.service.AuthenticationService;
-import com.feather.api.service.RedirectService;
+import com.feather.api.service.ResponseHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +37,7 @@ class AuthenticationControllerTest {
     @Mock
     private AuthenticationService authenticationService;
     @Mock
-    private RedirectService redirectService;
+    private ResponseHandler responseHandler;
     @Mock
     private HttpServletResponse response;
     @Mock
@@ -70,7 +70,7 @@ class AuthenticationControllerTest {
 
         // Assert
         verify(authenticationService).register(AUTH_CODE);
-        verify(redirectService).registerRedirect(response, jwtTokenCredentials);
+        verify(responseHandler).registerRedirect(response, jwtTokenCredentials);
     }
 
     @Test

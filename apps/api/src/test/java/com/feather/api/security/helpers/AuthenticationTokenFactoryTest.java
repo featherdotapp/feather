@@ -52,8 +52,6 @@ class AuthenticationTokenFactoryTest {
 
         // Act
         final FeatherAuthenticationToken result = classUnderTest.buildAuthenticationToken(
-                ACCESS_TOKEN,
-                REFRESH_TOKEN,
                 mockUser
         );
 
@@ -79,8 +77,6 @@ class AuthenticationTokenFactoryTest {
 
         // Act
         final FeatherAuthenticationToken result = classUnderTest.buildAuthenticationToken(
-                ACCESS_TOKEN,
-                REFRESH_TOKEN,
                 mockUser
         );
 

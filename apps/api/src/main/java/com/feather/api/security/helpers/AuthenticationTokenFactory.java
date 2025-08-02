@@ -27,14 +27,12 @@ public class AuthenticationTokenFactory {
      * and combines the current authorities with the JWT role to create a new authentication token.
      * </p>
      *
-     * @param accessToken the JWT access token
-     * @param refreshToken the JWT refresh token
      * @param user an authenticated user
      * @return a new {@link FeatherAuthenticationToken} containing the user, credentials, and authorities
      */
-    public FeatherAuthenticationToken buildAuthenticationToken(final String accessToken, final String refreshToken, final User user) {
+    public FeatherAuthenticationToken buildAuthenticationToken(final User user) {
         final Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        final FeatherCredentials credentials = buildCredentials(accessToken, refreshToken, currentAuth);
+        final FeatherCredentials credentials = buildCredentials(user.getAccessToken(), user.getRefreshToken(), currentAuth);
         final Set<GrantedAuthority> authorities = buildAuthorities(currentAuth.getAuthorities());
         return new FeatherAuthenticationToken(user, credentials, authorities);
     }
@@ -51,4 +49,9 @@ public class AuthenticationTokenFactory {
         return combinedAuthorities;
     }
 
+    public FeatherAuthenticationToken buildAuthenticationTokenFromRequest(final String apiKey, final String accessToken, final String refreshToken,
+            final User user) {
+        final FeatherCredentials providedCredentials = new FeatherCredentials(apiKey, accessToken, refreshToken);
+        return new FeatherAuthenticationToken(user, providedCredentials);
+    }
 }

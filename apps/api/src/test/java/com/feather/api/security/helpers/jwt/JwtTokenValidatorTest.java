@@ -1,21 +1,16 @@
-package com.feather.api.security.helpers;
+package com.feather.api.security.helpers.jwt;
 
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.INVALID_ACCESS_TOKEN;
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.INVALID_REFRESH_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
 import com.feather.api.jpa.model.User;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
-import com.feather.api.service.jwt.JwtTokenBuilder;
 import com.feather.api.service.jwt.JwtTokenParser;
-import com.feather.api.shared.TokenType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +27,8 @@ class JwtTokenValidatorTest {
     private static final String VALID_REFRESH_TOKEN = "valid.refresh.token";
     private static final String EXPIRED_ACCESS_TOKEN = "expired.access.token";
     private static final String EXPIRED_REFRESH_TOKEN = "expired.refresh.token";
-    private static final String NEW_ACCESS_TOKEN = "new.access.token";
     private static final String USERNAME = "testuser";
 
-    @Mock
-    private JwtTokenBuilder jwtTokenBuilder;
     @Mock
     private JwtTokenParser jwtTokenParser;
     @Mock
@@ -57,11 +49,10 @@ class JwtTokenValidatorTest {
         when(jwtTokenParser.extractExpirationDate(VALID_REFRESH_TOKEN)).thenReturn(VALID_EXPIRATION_DATE);
 
         // Act
-        final String result = classUnderTest.validateOrRefreshAccessToken(VALID_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser);
+        final boolean result = classUnderTest.shouldUpdateAccessToken(VALID_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser);
 
         // Assert
-        assertThat(result).isEqualTo(VALID_ACCESS_TOKEN);
-        verify(jwtTokenBuilder, never()).buildToken(any(), any());
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -70,14 +61,12 @@ class JwtTokenValidatorTest {
         setupValidTokens(EXPIRED_ACCESS_TOKEN, VALID_REFRESH_TOKEN);
         when(jwtTokenParser.extractExpirationDate(EXPIRED_ACCESS_TOKEN)).thenReturn(INVALID_EXPIRATION_DATE);
         when(jwtTokenParser.extractExpirationDate(VALID_REFRESH_TOKEN)).thenReturn(VALID_EXPIRATION_DATE);
-        when(jwtTokenBuilder.buildToken(mockUser, TokenType.ACCESS_TOKEN)).thenReturn(NEW_ACCESS_TOKEN);
 
         // Act
-        final String result = classUnderTest.validateOrRefreshAccessToken(EXPIRED_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser);
+        final boolean result = classUnderTest.shouldUpdateAccessToken(EXPIRED_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser);
 
         // Assert
-        assertThat(result).isEqualTo(NEW_ACCESS_TOKEN);
-        verify(jwtTokenBuilder).buildToken(mockUser, TokenType.ACCESS_TOKEN);
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -88,7 +77,7 @@ class JwtTokenValidatorTest {
 
         // Act & Assert
         assertThatThrownBy(() ->
-                classUnderTest.validateOrRefreshAccessToken(EXPIRED_ACCESS_TOKEN, EXPIRED_REFRESH_TOKEN, mockUser)
+                classUnderTest.shouldUpdateAccessToken(EXPIRED_ACCESS_TOKEN, EXPIRED_REFRESH_TOKEN, mockUser)
         )
                 .isInstanceOf(JwtAuthenticationException.class)
                 .hasMessageContaining(JwtAuthenticationException.EXPIRED_REFRESH_TOKEN);
@@ -101,7 +90,7 @@ class JwtTokenValidatorTest {
 
         // Act & Assert
         assertThatThrownBy(() ->
-                classUnderTest.validateOrRefreshAccessToken(VALID_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser)
+                classUnderTest.shouldUpdateAccessToken(VALID_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser)
         )
                 .isInstanceOf(JwtAuthenticationException.class)
                 .hasMessageContaining(INVALID_REFRESH_TOKEN);
@@ -116,7 +105,7 @@ class JwtTokenValidatorTest {
 
         // Act & Assert
         assertThatThrownBy(() ->
-                classUnderTest.validateOrRefreshAccessToken(VALID_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser)
+                classUnderTest.shouldUpdateAccessToken(VALID_ACCESS_TOKEN, VALID_REFRESH_TOKEN, mockUser)
         )
                 .isInstanceOf(JwtAuthenticationException.class)
                 .hasMessageContaining(INVALID_ACCESS_TOKEN);

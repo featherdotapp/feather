@@ -5,10 +5,10 @@ import java.io.IOException;
 import com.feather.api.security.annotations.ApiKeyAuthenticated;
 import com.feather.api.security.annotations.FullyAuthenticated;
 import com.feather.api.security.annotations.Unauthenticated;
+import com.feather.api.service.ResponseHandler;
 import com.feather.api.security.oauth2.OAuth2Provider;
 import com.feather.api.security.tokens.credentials.JwtTokenCredentials;
 import com.feather.api.service.AuthenticationService;
-import com.feather.api.service.RedirectService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -29,7 +29,7 @@ public class AuthenticationController {
 
     private final OAuth2Provider oAuth2Provider;
     private final AuthenticationService authenticationService;
-    private final RedirectService redirectService;
+    private final ResponseHandler responseHandler;
 
     /**
      * Generates the LinkedIn OAuth2 authorization URL.
@@ -62,7 +62,7 @@ public class AuthenticationController {
     @GetMapping("/linkedin/callback")
     public void linkedinCallback(@RequestParam("code") final String code, final HttpServletResponse response) throws IOException {
         final JwtTokenCredentials tokens = authenticationService.register(code);
-        redirectService.registerRedirect(response, tokens);
+        responseHandler.registerRedirect(response, tokens);
     }
 
     /**

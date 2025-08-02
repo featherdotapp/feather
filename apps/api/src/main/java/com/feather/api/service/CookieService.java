@@ -40,6 +40,7 @@ public class CookieService {
      * @param cookies The array of cookies to search through
      * @param cookieName The name of the cookie to find
      * @return An Optional containing the found cookie, or an empty Optional if no matching cookie exists
+     * @throws BadCredentialsException if the cookie is not found
      */
     public Optional<Cookie> findCookie(final Cookie[] cookies, final String cookieName) {
         if (cookies == null || cookies.length == 0) {
