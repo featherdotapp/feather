@@ -3,6 +3,7 @@ package com.feather.api.security.helpers.jwt;
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.EXPIRED_REFRESH_TOKEN;
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.INVALID_ACCESS_TOKEN;
 import static com.feather.api.security.exception_handling.exception.JwtAuthenticationException.INVALID_REFRESH_TOKEN;
+import static com.feather.api.shared.TokenType.ACCESS_TOKEN;
 import static com.feather.api.shared.TokenType.REFRESH_TOKEN;
 
 import java.util.Date;
@@ -12,7 +13,6 @@ import com.feather.api.jpa.model.User;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.service.jwt.JwtTokenParser;
 import com.feather.api.shared.TokenType;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -63,7 +63,7 @@ public class JwtTokenValidator {
         if (isJwtTokenInvalid(refreshToken, user, REFRESH_TOKEN)) {
             throw new JwtAuthenticationException(INVALID_REFRESH_TOKEN);
         }
-        if (isJwtTokenInvalid(accessToken, user, TokenType.ACCESS_TOKEN)) {
+        if (isJwtTokenInvalid(accessToken, user, ACCESS_TOKEN)) {
             throw new JwtAuthenticationException(INVALID_ACCESS_TOKEN);
         }
     }
@@ -73,7 +73,7 @@ public class JwtTokenValidator {
         return (!username.equals(user.getUsername())) || !isTokenValidForUser(token, user, tokenType);
     }
 
-    private boolean isTokenValidForUser(final String accessToken, final User user, @NonNull final TokenType tokenType) {
+    private boolean isTokenValidForUser(final String accessToken, final User user, final TokenType tokenType) {
         return switch (tokenType) {
             case ACCESS_TOKEN -> Objects.equals(accessToken, user.getAccessToken());
             case REFRESH_TOKEN -> Objects.equals(accessToken, user.getRefreshToken());

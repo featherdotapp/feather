@@ -57,7 +57,7 @@ class JwtTokenValidatorTest {
     void shouldUpdateRefreshToken_isExpiringSoon() {
         // Arrange
         ReflectionTestUtils.setField(classUnderTest, "minRemainingTimeForRefreshRefreshToken", SOME_EXPIRATION_DATE);
-        when(jwtTokenParser.extractExpirationDate(VALID_REFRESH_TOKEN)).thenReturn(new Date(System.currentTimeMillis() + 10L));
+        when(jwtTokenParser.extractExpirationDate(VALID_REFRESH_TOKEN)).thenReturn(new Date(System.currentTimeMillis() + 1000L));
 
         // Act
         final boolean result = classUnderTest.shouldUpdateRefreshToken(VALID_REFRESH_TOKEN);
@@ -70,10 +70,26 @@ class JwtTokenValidatorTest {
     void shouldUpdateRefreshToken_throwsException() {
         // Arrange
         ReflectionTestUtils.setField(classUnderTest, "minRemainingTimeForRefreshRefreshToken", SOME_EXPIRATION_DATE);
-        when(jwtTokenParser.extractExpirationDate(VALID_REFRESH_TOKEN)).thenThrow(new JwtAuthenticationException(""));
+        when(jwtTokenParser.extractExpirationDate(VALID_REFRESH_TOKEN)).thenReturn(new Date(System.currentTimeMillis() - 10L));
 
         // Act
         assertThrows(JwtAuthenticationException.class, () -> classUnderTest.shouldUpdateRefreshToken(VALID_REFRESH_TOKEN));
+    }
+
+    @Test
+    void shouldFailValidationWithInvalidRefreshToken() {
+        // Arrange
+        final String refreshToken = "invalid-refresh-token";
+        when(mockUser.getUsername()).thenReturn(USERNAME);
+        when(mockUser.getRefreshToken()).thenReturn("different-refresh-token");
+        when(jwtTokenParser.extractSubject(refreshToken)).thenReturn(USERNAME);
+
+        // Act & Assert - This should fail because tokens don't match
+        assertThatThrownBy(() ->
+                classUnderTest.shouldUpdateAccessToken("some-access-token", refreshToken, mockUser)
+        )
+                .isInstanceOf(JwtAuthenticationException.class)
+                .hasMessageContaining(INVALID_REFRESH_TOKEN);
     }
 
     @Nested
