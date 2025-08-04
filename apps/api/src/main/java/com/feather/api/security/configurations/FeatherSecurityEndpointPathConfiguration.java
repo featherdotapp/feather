@@ -36,6 +36,8 @@ public class FeatherSecurityEndpointPathConfiguration {
      * Scans all RestController beans and their methods for authentication annotations
      * and populates the corresponding path lists for each authentication type.
      * This method should be called before the application is fully initialized.
+     *
+     * @return an EndpointPaths object containing categorized endpoint paths
      */
     @Bean
     @Scope("singleton")

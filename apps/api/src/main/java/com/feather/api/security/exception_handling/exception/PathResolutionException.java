@@ -7,6 +7,19 @@ package com.feather.api.security.exception_handling.exception;
 
 public class PathResolutionException extends RuntimeException {
 
+    /**
+     * Creates a Path Resolution Exception
+     *
+     * @param errorType error type
+     * @param args optional arguments for the error message
+     */
+    public PathResolutionException(final ErrorType errorType, final Object... args) {
+        super(errorType.formatMessage(args));
+    }
+
+    /**
+     * Enum representing different types of path resolution errors.
+     */
     public enum ErrorType {
         NO_VALID_MAPPING("The method '%s' does not have a valid mapping annotation. Supported annotations: %s"),
         MULTI_PATH_NOT_SUPPORTED("Multi path mapping is not supported. Check the '%s' method and ensure the mapping annotation has only 1 valid path value."),
@@ -19,22 +32,18 @@ public class PathResolutionException extends RuntimeException {
 
         private final String messageTemplate;
 
-        ErrorType(String messageTemplate) {
+        ErrorType(final String messageTemplate) {
             this.messageTemplate = messageTemplate;
         }
 
-        public String formatMessage(Object... args) {
+        /**
+         * Formats the error message with the provided arguments.
+         *
+         * @param args optional arguments for the error message
+         * @return formatted error message
+         */
+        public String formatMessage(final Object... args) {
             return String.format(messageTemplate, args);
         }
-    }
-
-    /**
-     * Creates a Path Resolution Exception
-     *
-     * @param errorType error type
-     * @param args optional arguments for the error message
-     */
-    public PathResolutionException(ErrorType errorType, Object... args) {
-        super(errorType.formatMessage(args));
     }
 }

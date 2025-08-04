@@ -26,6 +26,7 @@ public class TokenRefresher {
      * @param accessToken the current access token
      * @param refreshToken the current refresh token
      * @param user the associated user
+     * @return the updated user with refreshed tokens
      */
     public User refreshTokens(final String accessToken, final String refreshToken, final User user) {
         if (jwtTokenValidator.shouldUpdateAccessToken(accessToken, refreshToken, user)) {

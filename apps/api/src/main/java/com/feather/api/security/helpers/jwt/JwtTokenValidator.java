@@ -12,6 +12,7 @@ import com.feather.api.jpa.model.User;
 import com.feather.api.security.exception_handling.exception.JwtAuthenticationException;
 import com.feather.api.service.jwt.JwtTokenParser;
 import com.feather.api.shared.TokenType;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,10 +37,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JwtTokenValidator {
 
+    private final JwtTokenParser jwtTokenParser;
     @Value("${security.jwt.min-remaining-time-for-refresh-refresh-token}")
     private String minRemainingTimeForRefreshRefreshToken;
-
-    private final JwtTokenParser jwtTokenParser;
 
     /**
      * Validates if the access token should be updated
@@ -73,7 +73,7 @@ public class JwtTokenValidator {
         return (!username.equals(user.getUsername())) || !isTokenValidForUser(token, user, tokenType);
     }
 
-    private boolean isTokenValidForUser(final String accessToken, final User user, final TokenType tokenType) {
+    private boolean isTokenValidForUser(final String accessToken, final User user, @NonNull final TokenType tokenType) {
         return switch (tokenType) {
             case ACCESS_TOKEN -> Objects.equals(accessToken, user.getAccessToken());
             case REFRESH_TOKEN -> Objects.equals(accessToken, user.getRefreshToken());

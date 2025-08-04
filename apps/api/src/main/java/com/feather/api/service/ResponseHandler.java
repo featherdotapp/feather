@@ -24,31 +24,28 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ResponseHandler {
 
-    @Value("${security.jwt.access-expiration-time}")
-    private String accessTokenExpirationTime;
-
-    @Value("${security.jwt.refresh-expiration-time}")
-    private String refreshTokenExpirationTime;
-
-    @Value("${frontend.url}")
-    private String frontendUrl;
-
     private final CookieService cookieService;
     private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
+    @Value("${security.jwt.access-expiration-time}")
+    private String accessTokenExpirationTime;
+    @Value("${security.jwt.refresh-expiration-time}")
+    private String refreshTokenExpirationTime;
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     /**
      * Adds updated access and/or refresh token cookies to the response if they have changed.
      *
      * @param response the HTTP response to modify
-     * @param credentials the original token credentials
-     * @param updatedCredentials the updated token credentials to compare against
+     * @param providedCredentials the original token providedCredentials
+     * @param updatedCredentials the updated token providedCredentials to compare against
      */
-    public void updateTokenCookiesIfChanged(final HttpServletResponse response, final FeatherCredentials credentials,
+    public void updateTokenCookiesIfChanged(final HttpServletResponse response, final FeatherCredentials providedCredentials,
             final FeatherCredentials updatedCredentials) {
-        if (!credentials.accessToken().equals(updatedCredentials.accessToken())) {
+        if (!providedCredentials.accessToken().equals(updatedCredentials.accessToken())) {
             response.addCookie(cookieService.createCookie(ACCESS_TOKEN.getCookieName(), updatedCredentials.accessToken(), accessTokenExpirationTime));
         }
-        if (!credentials.refreshToken().equals(updatedCredentials.refreshToken())) {
+        if (!providedCredentials.refreshToken().equals(updatedCredentials.refreshToken())) {
             response.addCookie(cookieService.createCookie(REFRESH_TOKEN.getCookieName(), updatedCredentials.refreshToken(), refreshTokenExpirationTime));
         }
     }

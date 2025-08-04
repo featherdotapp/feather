@@ -8,7 +8,6 @@ import com.feather.api.security.tokens.credentials.FeatherCredentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,10 +26,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
      *
      * @param authentication the authentication request object
      * @return a fully authenticated object including credentials
-     * @throws AuthenticationException if authentication fails
      */
     @Override
-    public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(final Authentication authentication) {
         final FeatherCredentials credentials = (FeatherCredentials) authentication.getCredentials();
         final String accessToken = credentials.accessToken();
         final String refreshToken = credentials.refreshToken();

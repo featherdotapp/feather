@@ -49,6 +49,15 @@ public class AuthenticationTokenFactory {
         return combinedAuthorities;
     }
 
+    /**
+     * Builds a {@link FeatherAuthenticationToken} from the request provided API key, access token, refresh token, and user.
+     *
+     * @param apiKey the API key provided by the request
+     * @param accessToken the access token provided by the request
+     * @param refreshToken the refresh token provided by the request
+     * @param user the user associated with the tokens
+     * @return a new {@link FeatherAuthenticationToken} containing the user and provided credentials
+     */
     public FeatherAuthenticationToken buildAuthenticationTokenFromRequest(final String apiKey, final String accessToken, final String refreshToken,
             final User user) {
         final FeatherCredentials providedCredentials = new FeatherCredentials(apiKey, accessToken, refreshToken);

@@ -20,6 +20,11 @@ public class FeatherCorsConfiguration {
     @Value("${app.cors.allowed-origins:*}")
     private List<String> allowedOrigins;
 
+    /**
+     * Creates a CorsConfigurationSource for the dev profile
+     *
+     * @return a CorsConfigurationSource with production-specific cors configuration
+     */
     @Bean
     @Primary
     @Profile("dev")
