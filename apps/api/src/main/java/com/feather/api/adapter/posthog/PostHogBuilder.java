@@ -1,7 +1,7 @@
 package com.feather.api.adapter.posthog;
 
-import org.springframework.beans.factory.annotation.Value;
 import com.posthog.java.PostHog;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,6 +18,11 @@ public class PostHogBuilder {
     @Value("${spring.posthog.host}")
     private String postHogHost;
 
+    /**
+     * Builds and returns a PostHog client instance.
+     *
+     * @return a configured {@link PostHog} client
+     */
     public PostHog buildPostHog() {
         return new PostHog.Builder(posthogApiKey).host(postHogHost).build();
     }
