@@ -38,20 +38,18 @@ The authentication flow in Feather follows these steps:
 
 ## Security Implementation
 
-For a detailed overview of the security implementation, check the `SpringSecurity.puml` file.
-
 The security architecture is based on Spring Security with custom filters and authentication providers:
 
 ### Security Filter Chains
 
-1. **Public Chain**:
+1. **Public Chain** (external services related endpoints like LinkedIn):
     - Allows unauthenticated access to specific endpoints like `/auth/linkedin/callback`
 
-2. **API Key Chain**:
+2. **API Key Chain** (no authenticated user-related endpoints):
     - Secures endpoints that require API key authentication (e.g., `/auth/linkedin/loginUrl`)
     - Uses `ApiKeyFilter` and `ApiKeyAuthenticationProvider`
 
-3. **Fully Authenticated Chain**:
+3. **Fully Authenticated Chain** (authenticated user-related endpoints):
     - Requires both API key and JWT token authentication
     - Uses both `ApiKeyFilter` and `JwtTokenFilter`
     - Example endpoint: `/auth/linkedin/isAuthenticated`
@@ -76,7 +74,7 @@ The security architecture is based on Spring Security with custom filters and au
     - `ApiKeyAuthenticationToken`: Represents API key authentication
     - `JwtAuthenticationToken`: Represents JWT token authentication
     - `FeatherAuthenticationToken`: Base token class for session persistence
-    - `FeatherCredentials`: Serializable record storing authentication credentials
+    - `FeatherCredentials`: Record storing authentication credentials
         - currentCredentials: Current authentication state (API key)
         - accessToken: JWT access token
         - refreshToken: JWT refresh token
@@ -140,6 +138,8 @@ The application uses JWT tokens for authentication with two types:
 4. If refresh token is invalid:
     - Authentication error is returned
     - User must re-authenticate
+5. Refresh token regeneration:
+    - If refresh token is valid, and it's expiry time is closer than 7 days, a new refresh token is generated and sent back to the client
 
 ## OAuth2 Integration
 
