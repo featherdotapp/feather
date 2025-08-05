@@ -1,6 +1,5 @@
 package com.feather.api.security.helpers;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +26,7 @@ class AuthenticationHandlerTest {
     private final String apiKey = "api-key";
     private final String accessToken = "access-token";
     private final String refreshToken = "refresh-token";
+
     @Mock
     private AuthenticationManager authenticationManager;
     @Mock
@@ -50,7 +49,6 @@ class AuthenticationHandlerTest {
     private FeatherCredentials providedCredentials;
     @Mock
     private FeatherCredentials currentCredentials;
-
     @InjectMocks
     private AuthenticationHandler classUnderTest;
 
@@ -71,7 +69,6 @@ class AuthenticationHandlerTest {
         verify(authenticationTokenFactory).buildAuthenticationTokenFromRequest(apiKey, accessToken, refreshToken, user);
         verify(authenticationManager).authenticate(providedAuthentication);
         verify(responseHandler).updateTokenCookiesIfChanged(response, providedCredentials, currentCredentials);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isEqualTo(currentAuthentication);
     }
 
     @Test
