@@ -89,4 +89,26 @@ class EndpointPathsTest {
         assertNotEquals(null, ep);
         assertNotEquals("not an EndpointPaths", ep); // getClass() != o.getClass()
     }
+
+    @Test
+    void testEqualsWithDifferentClass() {
+        // Arrange
+        final EndpointPaths ep = new EndpointPaths(new String[] { "/a" }, new String[] { "/b" }, new String[] { "/c" });
+        final Object other = new Object();
+        // Act & Assert
+        assertThat(ep.equals(other)).isFalse();
+    }
+
+    @Test
+    void testEqualsWithLastFieldDifferent() {
+        // Arrange
+        final String[] full = { "/full1" };
+        final String[] api = { "/api1" };
+        final String[] unauth1 = { "/unauth1" };
+        final String[] unauth2 = { "/unauth2" };
+        final EndpointPaths ep1 = new EndpointPaths(full, api, unauth1);
+        final EndpointPaths ep2 = new EndpointPaths(full, api, unauth2);
+        // Act & Assert
+        assertThat(ep1.equals(ep2)).isFalse();
+    }
 }
