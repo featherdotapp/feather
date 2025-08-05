@@ -51,12 +51,10 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             if (apiKey != null) {
                 final Authentication auth = new ApiKeyAuthenticationToken(apiKey);
                 SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
-                filterChain.doFilter(request, response);
+            } else if (!requestValidator.matchesNoNeededApiKeyPaths(request)) {
+                throw new ApiKeyAuthenticationException("API key is missing");
             }
-            if (requestValidator.matchesNoNeededApiKeyPaths(request)) {
-                filterChain.doFilter(request, response);
-            }
-            throw new ApiKeyAuthenticationException("API key is missing");
+            filterChain.doFilter(request, response);
         } catch (final ApiKeyAuthenticationException e) {
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response, e);
