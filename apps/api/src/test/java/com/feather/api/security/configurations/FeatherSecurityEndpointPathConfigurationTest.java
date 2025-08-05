@@ -97,6 +97,7 @@ class FeatherSecurityEndpointPathConfigurationTest {
         when(applicationContext.getBeansWithAnnotation(RestController.class)).thenReturn(controllers);
 
         final Method secureMethod = TestController.class.getMethod("secureEndpoint");
+
         when(pathResolver.resolvePath(secureMethod, TestController.class))
                 .thenThrow(new PathResolutionException(PathResolutionException.ErrorType.DUPLICATE_PATH, "Test error"));
 
@@ -127,6 +128,23 @@ class FeatherSecurityEndpointPathConfigurationTest {
         );
     }
 
+    @Test
+    void applicationPaths_ShouldThrowException_WhenPathExistsInSet2Only() throws NoSuchMethodException {
+        // Arrange
+        final TestController2 controller2 = new TestController2();
+        final Map<String, Object> controllers = Map.of("testController2", controller2);
+        when(applicationContext.getBeansWithAnnotation(RestController.class)).thenReturn(controllers);
+
+        final Method apiKeyMethod = TestController2.class.getMethod("apiKeyEndpoint");
+        final Method publicMethod = TestController2.class.getMethod("publicEndpoint");
+
+        when(pathResolver.resolvePath(apiKeyMethod, TestController2.class)).thenReturn("/unique");
+        when(pathResolver.resolvePath(publicMethod, TestController2.class)).thenReturn("/unique");
+
+        // Act & Assert
+        assertThrows(PathResolutionException.class, () -> classUnderTest.applicationPaths());
+    }
+
     @RestController
     static class TestController {
 
@@ -150,6 +168,22 @@ class FeatherSecurityEndpointPathConfigurationTest {
 
         @GetMapping("/no-annotation")
         public void noAnnotationEndpoint() {
+            // test
+        }
+    }
+
+    @RestController
+    static class TestController2 {
+
+        @ApiKeyAuthenticated
+        @GetMapping("/api-key")
+        public void apiKeyEndpoint() {
+            // test
+        }
+
+        @Unauthenticated
+        @GetMapping("/public")
+        public void publicEndpoint() {
             // test
         }
     }
