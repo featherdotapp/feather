@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import com.feather.api.security.helpers.AuthenticationHandler;
+import com.feather.api.security.helpers.RequestValidator;
 import com.feather.api.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -47,6 +48,8 @@ class JwtTokenFilterTest {
     private Authentication authentication;
     @InjectMocks
     private JwtTokenFilter filter;
+    @Mock
+    private RequestValidator requestValidator;
     private Cookie[] cookies;
 
     @BeforeEach
@@ -188,7 +191,7 @@ class JwtTokenFilterTest {
         // Arrange
         when(request.getCookies()).thenReturn(cookies);
         when(cookieService.findCookie(cookies, REFRESH_TOKEN.getCookieName())).thenThrow(new BadCredentialsException("fail"));
-        when(request.getRequestURI()).thenReturn("/auth/linkedin/loginUrl");
+        when(requestValidator.matchesNoNeededJwtPaths(request)).thenReturn(true);
 
         // Act
         filter.doFilterInternal(request, response, filterChain);
@@ -202,7 +205,7 @@ class JwtTokenFilterTest {
         // Arrange
         when(request.getCookies()).thenReturn(cookies);
         when(cookieService.findCookie(cookies, REFRESH_TOKEN.getCookieName())).thenThrow(new BadCredentialsException("fail"));
-        when(request.getRequestURI()).thenReturn("/other");
+        when(requestValidator.matchesNoNeededJwtPaths(request)).thenReturn(false);
 
         // Act & Assert
         assertThatThrownBy(() -> filter.doFilterInternal(request, response, filterChain))

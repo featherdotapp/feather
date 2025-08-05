@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import com.feather.api.security.helpers.AuthenticationHandler;
+import com.feather.api.security.helpers.RequestValidator;
 import com.feather.api.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,6 +35,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final CookieService cookieService;
     private final AuthenticationHandler authenticationHandler;
+    private final RequestValidator requestValidator;
 
     /**
      * Performs JWT authentication for each request.
@@ -60,7 +62,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
             filterChain.doFilter(request, response);
         } catch (final BadCredentialsException e) {
-            if (request.getRequestURI().equals("/auth/linkedin/loginUrl")) {
+            if (requestValidator.matchesNoNeededJwtPaths(request)) {
                 filterChain.doFilter(request, response);
             } else {
                 throw new BadCredentialsException("Refresh token cookie not found: " + e.getMessage());

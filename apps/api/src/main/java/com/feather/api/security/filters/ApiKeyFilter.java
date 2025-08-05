@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.exception_handling.exception.ApiKeyAuthenticationException;
+import com.feather.api.security.helpers.RequestValidator;
 import com.feather.api.security.tokens.ApiKeyAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,6 +31,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
     private final AuthenticationManager authenticationManager;
     private final FeatherAuthenticationEntryPoint authenticationEntryPoint;
+    private final RequestValidator requestValidator;
 
     /**
      * Performs API key authentication for each request.
@@ -49,8 +51,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             if (apiKey != null) {
                 final Authentication auth = new ApiKeyAuthenticationToken(apiKey);
                 SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+                filterChain.doFilter(request, response);
             }
-            filterChain.doFilter(request, response);
+            if (requestValidator.matchesNoNeededApiKeyPaths(request)) {
+                filterChain.doFilter(request, response);
+            }
+            throw new ApiKeyAuthenticationException("API key is missing");
         } catch (final ApiKeyAuthenticationException e) {
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response, e);

@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import com.feather.api.security.exception_handling.FeatherAuthenticationEntryPoint;
 import com.feather.api.security.exception_handling.exception.ApiKeyAuthenticationException;
+import com.feather.api.security.helpers.RequestValidator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +48,8 @@ class ApiKeyFilterTest {
     private SecurityContext context;
     @Mock
     private FeatherAuthenticationEntryPoint authenticationEntryPoint;
+    @Mock
+    private RequestValidator requestValidator;
 
     private MockedStatic<SecurityContextHolder> securityContextHolderMockedStatic;
 
@@ -82,7 +85,7 @@ class ApiKeyFilterTest {
     void testDoFilterInternal_providedApiKeyIsNull() throws ServletException, IOException {
         // Arrange
         when(request.getHeader("X-API-KEY")).thenReturn(null);
-        securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(context);
+        when(requestValidator.matchesNoNeededApiKeyPaths(request)).thenReturn(true);
 
         // Act
         classUnderTest.doFilterInternal(request, response, filterChain);
@@ -98,6 +101,7 @@ class ApiKeyFilterTest {
         when(request.getHeader("X-API-KEY")).thenReturn(null);
         securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(context);
         doThrow(ServletException.class).when(filterChain).doFilter(request, response);
+        when(requestValidator.matchesNoNeededApiKeyPaths(request)).thenReturn(true);
 
         // Act & Assert
         assertThrows(ServletException.class, () ->
@@ -111,6 +115,7 @@ class ApiKeyFilterTest {
         when(request.getHeader("X-API-KEY")).thenReturn(null);
         securityContextHolderMockedStatic.when(SecurityContextHolder::getContext).thenReturn(context);
         doThrow(IOException.class).when(filterChain).doFilter(request, response);
+        when(requestValidator.matchesNoNeededApiKeyPaths(request)).thenReturn(true);
 
         // Act & Assert
         assertThrows(IOException.class, () ->
